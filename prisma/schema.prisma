@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id          Int      @id @default(autoincrement())
+  customerId  String   @unique
+  name        String
+
+  users       User[]
+  orders      Order[]
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  passwordHash  String
+  customerId    String
+  verified      Boolean  @default(false)  // ✅ new field
+  customer      Customer @relation(fields: [customerId], references: [customerId])
+
+  verificationTokens VerificationToken[]
+}
+
+model Order {
+  id          Int      @id @default(autoincrement())
+  orderNumber String
+  locationId  String
+
+  customer    Customer @relation(fields: [customerId], references: [customerId])
+  customerId  String
+
+  orderItems  OrderItem[]
+}
+
+model OrderItem {
+  id            Int      @id @default(autoincrement())
+  inventoryId   String
+  description   String
+  eta           DateTime
+
+  order         Order    @relation(fields: [orderId], references: [id])
+  orderId       Int
+}
+
+model AccessCode {
+  id           Int      @id @default(autoincrement())
+  code         String   @unique
+  customerId   String
+  expiresAt    DateTime?
+  maxUses      Int?
+  usedCount    Int      @default(0)
+}
+
+model VerificationToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}

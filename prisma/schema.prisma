@@ -21,9 +21,11 @@ model User {
   email         String   @unique
   passwordHash  String
   customerId    String
-  verified      Boolean  @default(false)  // ✅ new field
-  customer      Customer @relation(fields: [customerId], references: [customerId])
+  verified      Boolean  @default(false)
+  firstName     String?
+  lastName      String?
 
+  customer      Customer @relation(fields: [customerId], references: [customerId])
   verificationTokens VerificationToken[]
 }
 

@@ -80,7 +80,9 @@ router.post('/login', async (req, res) => {
       message: 'Login successful',
       token,
       email: user.email,
-      customerId: user.customerId
+      customerId: user.customerId,
+      firstName: user.firstName,
+      lastName: user.lastName
     })
   } catch (err) {
     console.error('Login error:', err)

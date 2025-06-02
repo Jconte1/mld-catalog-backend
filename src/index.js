@@ -1,28 +1,20 @@
-import express from 'express'
-import cors from 'cors'
-import dotenv from 'dotenv'
-import { PrismaClient } from '@prisma/client'
+import express from 'express';
+import cors from 'cors';
+import productRoutes from './api/routes/product.js'; // ✅ relative path
 
-import authRoutes from './routes/auth.js'
-import accountRoutes from './routes/account.js' 
+const app = express();
+const PORT = process.env.PORT || 5000;
 
-dotenv.config()
+app.use(cors());
+app.use(express.json());
 
-const app = express()
-const prisma = new PrismaClient()
-
-app.use(cors())
-app.use(express.json())
-
-// ✅ API Routes
-app.use('/api', authRoutes)
-app.use('/api/account', accountRoutes)
+// ✅ Mount the route correctly
+app.use('/api/products', productRoutes);
 
 app.get('/', (req, res) => {
-  res.send('MLD Backend API is running ✅')
-})
+  res.send('API is running');
+});
 
-const PORT = process.env.PORT || 5000
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`)
-})
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
+});

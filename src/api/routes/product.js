@@ -54,6 +54,7 @@ function normalizeType(typeParam) {
         'COMMERCIAL WASHER',
         'PORTABLE DRYER',
       ];
+      //testing azure deployment commment line here (you can erase this when you see it)
     case 'ranges':
       return [
         'PROFESSIONAL AND LARGE FREE STANDING GAS RANGE',

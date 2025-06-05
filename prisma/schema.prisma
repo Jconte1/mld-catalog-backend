@@ -13,6 +13,8 @@ model products {
   id        String   @id @default(uuid())
   model     String?
   brand     String?
+  type      String?
+  features  String[]
   major     String?
   minor     String?
   data      Json

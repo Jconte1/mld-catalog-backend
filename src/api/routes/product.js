@@ -1,180 +1,175 @@
 import express from 'express';
+import normalizeType from '../../utils/normalizeType.js';
 import { PrismaClient } from '@prisma/client';
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// 🔁 Map frontend slugs to DB values in `minor`
-function normalizeType(typeParam) {
-  const t = typeParam?.toLowerCase?.() || '';
+router.get('/filter-options', async (req, res) => {
+    const { type } = req.query;
+    if (!type) return res.status(400).json({ error: 'Missing type' });
 
-  switch (t) {
-    case 'cooktops-and-rangetops':
-      return ['COOKTOPS (ELECTRIC)', 'COOKTOPS (GAS)', 'RANGETOPS'];
-    case 'built-in-ovens':
-      return ['SINGLE WALL OVEN', 'DOUBLE WALL OVEN', 'BUILT-IN OVEN'];
-    case 'warming-drawers':
-      return ['WARMING DRAWER'];
-    case 'microwave':
-      return ['MICROWAVE', 'OVER THE RANGE MICROWAVE', 'COUNTERTOP MICROWAVE', 'BUILT-IN MICROWAVE'];
-    case 'coffee-systems':
-      return ['COFFEE MAKERS AND GRINDERS'];
-    case 'refrigerators':
-      return [
-        'FRENCH DOOR REFRIGERATOR',
-        'SIDE BY SIDE REFRIGERATOR',
-        'TOP FREEZER REFRIGERATOR',
-        'BOTTOM FREEZER REFRIGERATOR',
-        'NO FREEZER BUILT IN REFRIGERATOR',
-        'FRENCH DOOR FREESTANDING REFRIGERATOR',
-        'SIDE BY SIDE BUILT IN REFRIGERATOR',
-        'COMPACT REFRIGERATOR',
-        'SPECIALTY REFRIGERATOR',
-        'TOP FREEZER FREESTANDING REFRIGERATOR',
-        'GLASS DOOR REFRIGERATOR',
-      ];
-    case 'freezers':
-      return ['REFRIGERATED DRAWER', 'UPRIGHT FREEZERS', 'CHEST FREEZERS'];
-    case 'ice-makers':
-      return ['ICE MAKERS'];
-    case 'outdoor-grills':
-      return ['LP GAS BBQ', 'NATURAL GAS BBQ', 'PRO STYLE BBQ', 'CHARCOAL BBQ', 'ELECTRIC BBQ', 'PELLET BBQ'];
-    case 'laundry':
-      return [
-        'TOP LOAD MATCHING ELECTRIC DRYER',
-        'FRONT LOAD ELECTRIC DRYER',
-        'COMBINATION WASHER DRYER',
-        'FRONT LOAD GAS DRYER',
-        'HIGH EFFICIENCY TOP LOAD WASHER',
-        'TRADITIONAL TOP LOAD WASHER',
-        'TOP LOAD GAS DRYER',
-        'LAUNDRY PEDESTAL',
-        'ELECTRIC DRYER',
-        'FRONT LOAD ELECTRIC DRYER',
-        'COMMERCIAL WASHER',
-        'PORTABLE DRYER',
-      ];
-      //testing azure deployment commment line here (you can erase this when you see it)
-    case 'ranges':
-      return [
-        'PROFESSIONAL AND LARGE FREE STANDING GAS RANGE',
-        'PROFESSIONAL GAS RANGE',
-        'FREESTANDING SMOOTHTOP ELECTRIC RANGE',
-        'ELECTRIC SPECIALTY RANGE',
-        'SLIDE-IN ELECTRIC RANGE',
-        'SLIDE IN GAS RANGE',
-        'SLIDE IN ELECTRIC RANGE',
-        '20" FREESTANDING COIL ELECTRIC RANGE',
-        '20" FREE STANDING GAS RANGE',
-        '24" FREE STANDING GAS RANGE',
-        '24" FREESTANDING COIL ELECTRIC RANGE',
-        '30" FREE STANDING ELECTRIC RANGE',
-        '30" FREE STANDING GAS RANGE',
-        '30" SLIDE-IN GAS RANGE',
-        '30" ELECTRIC COIL RANGE',
-        '30" FREESTANDING COIL ELECTRIC RANGE',
-        
-        '36" FREE STANDING GAS RANGE',
-        '36" AND LARGER FREE STANDING GAS RANGE',
-        '36" AND LARGER FREESTANDING COIL RANGE',
-        '30" FREESTANDING COIL ELECTRIC RANGE',
-        'ELECTRIC FREESTANDING COIL RANGE',
-        
-        'DROP IN ELECTRIC RANGE',
-        'SPECIALTY RANGE',
-        'SPECIALTY GAS RANGE'
-      ];
-    default:
-      return [typeParam.toUpperCase()];
-  }
-}
+    try {
+        const normalized = normalizeType(type);
+        const whereClause = {
+            OR: normalized.map((val) => ({
+                minor: {
+                    contains: val,
+                    mode: 'insensitive',
+                },
+            })),
+        };
 
-// 🟢 Handle /api/products/:slug
-router.get('/:slug', async (req, res) => {
-  const { slug } = req.params;
-
-  try {
-    const product = await prisma.products.findFirst({
-      where: {
-        OR: [
-          {
-            model: {
-              equals: slug,
-              mode: 'insensitive',
+        const products = await prisma.products.findMany({
+            where: whereClause,
+            select: {
+                brand: true,
+                features: true,
             },
-          },
-          {
-            data: {
-              path: ['classification', 'pn'],
-              equals: slug,
-            },
-          },
-        ],
-      },
-      select: {
-        id: true,
-        model: true,
-        brand: true,
-        major: true,
-        minor: true,
-        data: true,
-      },
-    });
+        });
 
-    if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
+        const brandSet = new Set();
+        const featureSet = new Set();
+
+        products.forEach((p) => {
+            if (p.brand) brandSet.add(p.brand);
+            if (Array.isArray(p.features)) {
+                p.features.forEach((f) => {
+                    if (f) featureSet.add(f);
+                });
+            }
+        });
+
+        res.json({
+            Brand: Array.from(brandSet).sort(),
+            Features: Array.from(featureSet).sort(),
+        });
+    } catch (err) {
+        console.error('❌ Failed to get filter options:', err);
+        res.status(500).json({ error: 'Failed to load filter options' });
     }
-
-    res.json(product);
-  } catch (err) {
-    console.error('❗ Failed to fetch product by slug:', err);
-    res.status(500).json({ error: 'Failed to fetch product' });
-  }
 });
 
-// 🔽 Handle /api/products?type=...&page=...&limit=...
+router.get('/:slug', async (req, res) => {
+    const { slug } = req.params;
+
+    try {
+        const product = await prisma.products.findFirst({
+            where: {
+                OR: [
+                    {
+                        model: {
+                            equals: slug,
+                            mode: 'insensitive',
+                        },
+                    },
+                    {
+                        data: {
+                            path: ['classification', 'pn'],
+                            equals: slug,
+                        },
+                    },
+                ],
+            },
+            select: {
+                id: true,
+                model: true,
+                brand: true,
+                major: true,
+                minor: true,
+                data: true,
+            },
+        });
+
+        if (!product) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
+        res.json(product);
+    } catch (err) {
+        console.error('❗ Failed to fetch product by slug:', err);
+        res.status(500).json({ error: 'Failed to fetch product' });
+    }
+});
+
 router.get('/', async (req, res) => {
-  const { type, page = 1, limit = 15 } = req.query;
+    const { type, page = 1, limit, filters } = req.query;
 
-  const skip = parseInt(page) > 1 ? (parseInt(page) - 1) * parseInt(limit) : 0;
-  const isAll = limit === 'ALL';
-  const take = isAll ? undefined : parseInt(limit);
+    const parsedLimit = limit === 'ALL' ? null : parseInt(limit) || 15;
+    const skip = parseInt(page) > 1 ? (parseInt(page) - 1) * parsedLimit : 0;
 
-  try {
-    let whereClause = undefined;
+    let typeClause = undefined;
+    let filterClause = {};
 
     if (type) {
-      const normalized = normalizeType(type);
-      whereClause = {
-        OR: normalized.map((val) => ({
-          minor: {
-            contains: val,
-            mode: 'insensitive',
-          },
-        })),
-      };
+        const normalized = normalizeType(type);
+        typeClause = {
+            OR: normalized.map((val) => ({
+                minor: {
+                    contains: val,
+                    mode: 'insensitive',
+                },
+            })),
+        };
     }
 
-    const products = await prisma.products.findMany({
-      where: whereClause,
-      skip,
-      take,
-      orderBy: { created_at: 'desc' },
-      select: {
-        id: true,
-        model: true,
-        brand: true,
-        major: true,
-        minor: true,
-        data: true,
-      },
-    });
+    if (filters) {
+        try {
+            const parsedFilters = JSON.parse(filters);
 
-    res.json(products);
-  } catch (err) {
-    console.error('❌ Failed to fetch products from DB:', err);
-    res.status(500).json({ error: 'Failed to fetch products' });
-  }
+            if (parsedFilters.features?.length) {
+                const normalizedFeatures = parsedFilters.features.map((f) => f.toLowerCase().trim());
+                filterClause.features = {
+                    hasEvery: normalizedFeatures,
+                };
+            }
+
+            if (parsedFilters.brand?.length) {
+                filterClause.brand = {
+                    in: parsedFilters.brand,
+                };
+            }
+
+        } catch (err) {
+            console.error('❌ Failed to parse filters:', filters, err);
+        }
+    }
+
+    const where = {
+        ...typeClause,
+        ...filterClause,
+    };
+
+    try {
+        // 🧮 Count total matching records
+        const totalCount = await prisma.products.count({ where });
+
+        // 🧲 Fetch paginated results
+        const products = await prisma.products.findMany({
+            where,
+            skip,
+            take: parsedLimit,
+            orderBy: { created_at: 'desc' },
+            select: {
+                id: true,
+                model: true,
+                brand: true,
+                major: true,
+                minor: true,
+                features: true,
+                data: true,
+            },
+        });
+
+        // 📦 Return both products and count
+        res.json({
+            products,
+            totalCount,
+        });
+    } catch (err) {
+        console.error('❌ Failed to fetch products from DB:', err);
+        res.status(500).json({ error: 'Failed to fetch products' });
+    }
 });
 
 export default router;

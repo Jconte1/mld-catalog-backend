@@ -15,7 +15,7 @@ app.use(express.json());
 app.use('/api/products', productRoutes);
 
 app.get('/', (req, res) => {
-  res.send('API is running');
+  res.send('API is running testing testing testing ');
 });
 
 app.listen(PORT, () => {

@@ -25,24 +25,29 @@ router.get('/filter-options', async (req, res) => {
             select: {
                 brand: true,
                 features: true,
+                width: true,
             },
         });
 
         const brandSet = new Set();
         const featureSet = new Set();
+        const widthSet = new Set();
 
         products.forEach((p) => {
             if (p.brand) brandSet.add(p.brand);
+
             if (Array.isArray(p.features)) {
                 p.features.forEach((f) => {
                     if (f) featureSet.add(f);
                 });
             }
+            if (p.width) widthSet.add(p.width);
         });
 
         res.json({
             Brand: Array.from(brandSet).sort(),
             Features: Array.from(featureSet).sort(),
+            Width: Array.from(widthSet).sort(),
         });
     } catch (err) {
         console.error('❌ Failed to get filter options:', err);

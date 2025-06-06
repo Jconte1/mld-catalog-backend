@@ -135,6 +135,12 @@ router.get('/', async (req, res) => {
                 };
             }
 
+            if (parsedFilters.width?.length) {
+                filterClause.width = {
+                    in: parsedFilters.width,
+                };
+            }
+
         } catch (err) {
             console.error('❌ Failed to parse filters:', filters, err);
         }

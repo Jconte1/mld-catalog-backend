@@ -52,7 +52,7 @@ router.get('/filter-options', async (req, res) => {
             Brand: Array.from(brandSet).sort(),
             Features: Array.from(featureSet).sort(),
             Width: Array.from(widthSet).sort(),
-            FuelType: Array.from(fuelTypeSet).sort(),
+            ...(fuelTypeSet.size > 0 && { FuelType: Array.from(fuelTypeSet).sort() }),
         });
     } catch (err) {
         console.error('❌ Failed to get filter options:', err);

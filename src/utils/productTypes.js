@@ -14,5 +14,5 @@ export const predefinedTypes = [
     'ICE MAKERS',
     'DISHWASHERS',
     'LAUNDRY',
-    'DISHWASHERS'
+    
 ];

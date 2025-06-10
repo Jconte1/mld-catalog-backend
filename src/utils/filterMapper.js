@@ -4,20 +4,32 @@ import typeFeatureValues from "./typeFeatureValues.js"
 
 export const filterValueExtractors = {
 
-    // FuelType: (product) => {
-    //     const description = product.marketing_copy?.short_description?.toLowerCase() || '';
-    //     const minor_code = product.classification?.minor_class_code?.toUpperCase() || "";
-    //     const types = [];
-
-    //     if (minor_code.includes('BBQLP')) types.push('LP Gas');
-    //     if (minor_code.includes('BBQNG')) types.push('Natural Gas');
-    //     if (description.includes('dual fuel')) types.push('Dual Fuel');
-    //     if (description.includes('induction')) types.push('Induction');
-    //     if (description.includes('gas')) types.push('Gas');
-    //     if (description.includes('electric')) types.push('Electric');
-
-    //     return types.length > 0 ? types : null;
-    // },
+    FuelType: (product) => {
+        const description = product.marketing_copy?.short_description?.toLowerCase() || '';
+        const minor_code = product.classification?.minor_class_code?.toUpperCase() || '';
+        const major = product.classification?.major_class_description?.toLowerCase() || '';
+        const minor = product.classification?.minor_class_description?.toLowerCase() || '';
+    
+        const types = [];
+    
+        if (minor_code.includes('BBQLP')) types.push('LP Gas');
+        if (minor_code.includes('BBQNG')) types.push('Natural Gas');
+        if (description.includes('dual fuel') || major.includes('dual fuel') || minor.includes('dual fuel')) {
+            types.push('Dual Fuel');
+        }
+        if (description.includes('induction') || major.includes('induction') || minor.includes('induction')) {
+            types.push('Induction');
+        }
+        if (description.includes('gas') || major.includes('gas') || minor.includes('gas')) {
+            types.push('Gas');
+        }
+        if (description.includes('electric') || major.includes('electric') || minor.includes('electric')) {
+            types.push('Electric');
+        }
+    
+        return types.length > 0 ? types : null;
+    },
+    
 
     // ProductType: (product) => {
     //     const typeFromSpecPairs = [];

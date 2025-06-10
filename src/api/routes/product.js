@@ -11,6 +11,7 @@ router.get('/filter-options', async (req, res) => {
 
     try {
         const normalized = normalizeType(type);
+        console.log('🔍 normalized types:', normalized);
         const whereClause = {
             OR: normalized.map((val) => ({
                 minor: {
@@ -26,12 +27,14 @@ router.get('/filter-options', async (req, res) => {
                 brand: true,
                 features: true,
                 width: true,
+                fuelType: true,
             },
         });
 
         const brandSet = new Set();
         const featureSet = new Set();
         const widthSet = new Set();
+        const fuelTypeSet = new Set();
 
         products.forEach((p) => {
             if (p.brand) brandSet.add(p.brand);
@@ -42,12 +45,14 @@ router.get('/filter-options', async (req, res) => {
                 });
             }
             if (p.width) widthSet.add(p.width);
+            if (p.fuelType) fuelTypeSet.add(p.fuelType)
         });
 
         res.json({
             Brand: Array.from(brandSet).sort(),
             Features: Array.from(featureSet).sort(),
             Width: Array.from(widthSet).sort(),
+            FuelType: Array.from(fuelTypeSet).sort(),
         });
     } catch (err) {
         console.error('❌ Failed to get filter options:', err);
@@ -141,6 +146,11 @@ router.get('/', async (req, res) => {
                 };
             }
 
+            if (parsedFilters.fuelType?.length) {
+                filterClause.fuelType = {
+                    in: parsedFilters.fuelType,
+                };
+            }
         } catch (err) {
             console.error('❌ Failed to parse filters:', filters, err);
         }

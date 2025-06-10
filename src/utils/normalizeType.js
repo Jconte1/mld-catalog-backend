@@ -12,6 +12,8 @@ export default function normalizeType(typeParam) {
         return ['MICROWAVE', 'OVER THE RANGE MICROWAVE', 'COUNTERTOP MICROWAVE', 'BUILT-IN MICROWAVE'];
       case 'coffee-systems':
         return ['COFFEE MAKERS AND GRINDERS'];
+      case 'dishwashers':
+        return ['BUILT IN DISHWASHER', 'PORTABLE DISHWASHER'];
       case 'refrigerators':
         return [
           'FRENCH DOOR REFRIGERATOR',
@@ -47,7 +49,7 @@ export default function normalizeType(typeParam) {
           'COMMERCIAL WASHER',
           'PORTABLE DRYER',
         ];
-        //testing azure deployment commment line here (you can erase this when you see it)
+        
       case 'ranges':
         return [
           'PROFESSIONAL AND LARGE FREE STANDING GAS RANGE',

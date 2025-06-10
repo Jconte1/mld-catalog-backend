@@ -16,6 +16,7 @@ model products {
   type      String?
   features  String[]
   width     String?
+  fuelType  String[]
   major     String?
   minor     String?
   data      Json

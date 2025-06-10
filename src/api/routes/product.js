@@ -45,14 +45,18 @@ router.get('/filter-options', async (req, res) => {
                 });
             }
             if (p.width) widthSet.add(p.width);
-            if (p.fuelType) fuelTypeSet.add(p.fuelType)
+            if (typeof p.fuelType === 'string' && p.fuelType.trim() !== '') {
+                fuelTypeSet.add(p.fuelType.trim());
+            }
         });
 
         res.json({
             Brand: Array.from(brandSet).sort(),
             Features: Array.from(featureSet).sort(),
             Width: Array.from(widthSet).sort(),
-            ...(fuelTypeSet.size > 0 && { FuelType: Array.from(fuelTypeSet).sort() }),
+            ...(fuelTypeSet.size > 0 && {
+                FuelType: Array.from(fuelTypeSet).sort(),
+              }),
         });
     } catch (err) {
         console.error('❌ Failed to get filter options:', err);

@@ -1,6 +1,7 @@
 import express from 'express';
 import normalizeType from '../../utils/normalizeType.js';
 import { PrismaClient } from '@prisma/client';
+import mapSpecToProduct from '../../utils/productMapper.js';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -56,7 +57,7 @@ router.get('/filter-options', async (req, res) => {
             Width: Array.from(widthSet).sort(),
             ...(fuelTypeSet.size > 0 && {
                 FuelType: Array.from(fuelTypeSet).sort(),
-              }),
+            }),
         });
     } catch (err) {
         console.error('❌ Failed to get filter options:', err);
@@ -99,7 +100,8 @@ router.get('/:slug', async (req, res) => {
             return res.status(404).json({ error: 'Product not found' });
         }
 
-        res.json(product);
+        const mapped = mapSpecToProduct(product.data, product.major, product.minor);
+        res.json(mapped);
     } catch (err) {
         console.error('❗ Failed to fetch product by slug:', err);
         res.status(500).json({ error: 'Failed to fetch product' });

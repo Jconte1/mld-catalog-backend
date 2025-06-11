@@ -129,25 +129,26 @@ export default function mapSpecToProduct(spec, categoryFromRoute, typeFromRoute)
     thumbnail_url: img.thumbnail_url || '',
   }));
 
-  const productVideoData = classification?.product_videos?.product_video || [];
+  const productVideoRaw = classification?.product_videos?.product_video;
 
-  const videos = Array.isArray(productVideoData)
-    ? productVideoData.map((video) => ({
-      title: video.title || '',
-      video_file_name: video.video_file_name || '',
-      thumbnail_image_file_name: video.thumbnail_image_file_name || '',
-      video_type: video.video_type || '',
+const videos = Array.isArray(productVideoRaw)
+  ? productVideoRaw.map((video) => ({
+      title: video?.title || '',
+      video_file_name: video?.video_file_name || '',
+      thumbnail_image_file_name: video?.thumbnail_image_file_name || '',
+      video_type: video?.video_type || '',
     }))
-    : productVideoData
-      ? [
-        {
-          title: productVideoData.title || '',
-          video_file_name: productVideoData.video_file_name || '',
-          thumbnail_image_file_name: productVideoData.thumbnail_image_file_name || '',
-          video_type: productVideoData.video_type || '',
-        },
-      ]
-      : [];
+  : productVideoRaw
+  ? [
+      {
+        title: productVideoRaw?.title || '',
+        video_file_name: productVideoRaw?.video_file_name || '',
+        thumbnail_image_file_name: productVideoRaw?.thumbnail_image_file_name || '',
+        video_type: productVideoRaw?.video_type || '',
+      },
+    ]
+  : [];
+
 
   const regular_fpv = managed_data?.column_data?.REGULAR_FPV || null;
 

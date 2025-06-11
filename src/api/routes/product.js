@@ -46,8 +46,12 @@ router.get('/filter-options', async (req, res) => {
                 });
             }
             if (p.width) widthSet.add(p.width);
-            if (typeof p.fuelType === 'string' && p.fuelType.trim() !== '') {
-                fuelTypeSet.add(p.fuelType.trim());
+            if (Array.isArray(p.fuelType)) {
+                p.fuelType.forEach((ft) => {
+                    if (typeof ft === 'string' && ft.trim() !== '') {
+                        fuelTypeSet.add(ft.trim());
+                    }
+                });
             }
         });
 

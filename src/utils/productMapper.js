@@ -8,8 +8,10 @@ export function normalizeType(major, minor, classification, marketing_copy) {
 
 
   if (!majorUpper && !minorUpper) return null;
-  if (major_code.includes('MIC') || minorUpper.includes('MICROWAVE')) return 'MICROWAVE';
-  if (majorUpper === 'ACCESSORIES') return null;
+
+  if (minorUpper.includes('ACCESSORIES')) return 'MISC';
+  if (minorUpper.includes('MICROWAVE')) return 'MICROWAVES';
+
   if (minorUpper.includes('WARMING DRAWER')) return 'WARMING DRAWERS';
 
   if (minorUpper.includes('COOKTOP') || minorUpper.includes('RANGETOP')) return 'COOKTOPS AND RANGETOPS';
@@ -38,7 +40,12 @@ export function normalizeType(major, minor, classification, marketing_copy) {
   if (majorUpper.includes('LAUNDRY')) return 'LAUNDRY';
 
   for (const type of predefinedTypes) {
-    if (majorUpper.includes(type) || minorUpper.includes(type)) return type;
+    if (
+      (majorUpper.includes(type) || minorUpper.includes(type)) &&
+      !minorUpper.includes('ACCESSORIES')
+    ) {
+      return type;
+    }
   }
 
   return 'MISC';
@@ -171,6 +178,8 @@ const videos = Array.isArray(productVideoRaw)
   return {
     slug,
     model,
+    minor,
+    major,
     name,
     image: mediaImage,
     brand,
@@ -200,6 +209,7 @@ const videos = Array.isArray(productVideoRaw)
       paragraph_description,
       features,
       image_features,
+      spec_table_as_key_value_pairs,
       spec_table_html: spec_table_as_key_value_pairs,
       hierarchical_features_html,
     },

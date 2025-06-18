@@ -15,6 +15,7 @@ model products {
   brand     String?
   type      String?
   features  String[]
+  configuration String[]
   width     String?
   fuelType  String[]
   major     String?

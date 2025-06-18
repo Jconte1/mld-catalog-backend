@@ -8,12 +8,12 @@ export default function normalizeType(typeParam) {
         return ['SINGLE WALL OVEN', 'DOUBLE WALL OVEN', 'BUILT-IN OVEN'];
       case 'warming-drawers':
         return ['WARMING DRAWER'];
-      case 'microwave':
+      case 'microwaves':
         return ['MICROWAVE', 'OVER THE RANGE MICROWAVE', 'COUNTERTOP MICROWAVE', 'BUILT-IN MICROWAVE'];
       case 'coffee-systems':
         return ['COFFEE MAKERS AND GRINDERS'];
       case 'dishwashers':
-        return ['BUILT IN DISHWASHER', 'PORTABLE DISHWASHER'];
+        return ['BUILT IN DISHWASHER'];
       case 'refrigerators':
         return [
           'FRENCH DOOR REFRIGERATOR',
@@ -27,9 +27,10 @@ export default function normalizeType(typeParam) {
           'SPECIALTY REFRIGERATOR',
           'TOP FREEZER FREESTANDING REFRIGERATOR',
           'GLASS DOOR REFRIGERATOR',
+          
         ];
       case 'freezers':
-        return ['REFRIGERATED DRAWER', 'UPRIGHT FREEZERS', 'CHEST FREEZERS'];
+        return [ 'REFRIGERATED DRAWER','UPRIGHT FREEZERS', 'CHEST FREEZERS'];
       case 'ice-makers':
         return ['ICE MAKERS'];
       case 'outdoor-grills':
@@ -68,13 +69,11 @@ export default function normalizeType(typeParam) {
           '30" SLIDE-IN GAS RANGE',
           '30" ELECTRIC COIL RANGE',
           '30" FREESTANDING COIL ELECTRIC RANGE',
-          
           '36" FREE STANDING GAS RANGE',
           '36" AND LARGER FREE STANDING GAS RANGE',
           '36" AND LARGER FREESTANDING COIL RANGE',
           '30" FREESTANDING COIL ELECTRIC RANGE',
           'ELECTRIC FREESTANDING COIL RANGE',
-          
           'DROP IN ELECTRIC RANGE',
           'SPECIALTY RANGE',
           'SPECIALTY GAS RANGE'

@@ -7,21 +7,21 @@ import { filterValueExtractors } from '../utils/filterMapper.js';
 const prisma = new PrismaClient();
 const BATCH_SIZE = 1000;
 
-async function backfillWidthForRanges() {
+async function backfillWidthForMICROWAVE() {
     const total = await prisma.products.count({
-        where: { type: 'RANGES' },
+        where: { type: 'MICROWAVE' },
     });
 
-    console.log(`🧮 RANGES products: ${total}\n`);
+    console.log(`🧮 MICROWAVE products: ${total}\n`);
 
     for (let skip = 0; skip < total; skip += BATCH_SIZE) {
         const batch = await prisma.products.findMany({
-            where: { type: 'RANGES' },
+            where: { type: 'MICROWAVE' },
             skip,
             take: BATCH_SIZE,
         });
 
-        console.log(`🔍 Processing ${batch.length} RANGES products for width backfill\n`);
+        console.log(`🔍 Processing ${batch.length} MICROWAVE products for width backfill\n`);
 
         for (const product of batch) {
             try {
@@ -30,7 +30,7 @@ async function backfillWidthForRanges() {
                     minor: product.minor,
                     model: product.model,
                 };
-                const width = filterValueExtractors.RangeWidth(mapped) || null;
+                const width = filterValueExtractors.MicrowaveWidth(mapped) || null;
 
                 await prisma.products.update({
                     where: { id: product.id },
@@ -44,8 +44,8 @@ async function backfillWidthForRanges() {
         }
     }
 
-    console.log('\n✅ Full backfill complete. Widths updated for all RANGES.\n');
+    console.log('\n✅ Full backfill complete. Widths updated for all MICROWAVE.\n');
     await prisma.$disconnect();
 }
 
-// backfillWidthForRanges().catch(console.error);
+backfillWidthForMICROWAVE().catch(console.error);

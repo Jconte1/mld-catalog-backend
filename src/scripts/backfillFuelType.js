@@ -4,7 +4,7 @@ import { filterValueExtractors } from '../utils/filterMapper.js';
 
 const prisma = new PrismaClient();
 const BATCH_SIZE = 1000;
-const TYPES_TO_UPDATE = ['RANGES', 'OUTDOOR GRILLS'];
+const TYPES_TO_UPDATE = ['COOKTOPS AND RANGETOPS'];
 
 async function backfillFuelType() {
     const total = await prisma.products.count({
@@ -34,7 +34,7 @@ async function backfillFuelType() {
                     model: product.model,
                 };
 
-                const rawFuelType = filterValueExtractors.FuelType(mapped);
+                const rawFuelType = filterValueExtractors.CooktopFuelType(mapped);
                 const fuelType = Array.isArray(rawFuelType)
                     ? rawFuelType
                     : rawFuelType

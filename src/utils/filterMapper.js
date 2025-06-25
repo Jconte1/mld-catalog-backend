@@ -30,69 +30,19 @@ export const filterValueExtractors = {
     //     return types.length > 0 ? types : null;
     // },
 
-
-    // ProductType: (product) => {
-    //     const typeFromSpecPairs = [];
-
-    //     const specTable = product.marketing_copy?.spec_table_html || [];
-
-    //     specTable.forEach(section => {
-    //         section.key_value_pairs.forEach(pair => {
-    //             const key = pair.key?.toLowerCase?.() || '';
-    //             const value = pair.value?.toLowerCase?.() || '';
-    //             if (key.includes('type')) {
-    //                 typeFromSpecPairs.push(value);
-    //             }
-    //         });
-    //     });
-
-    //     const short = product.marketing_copy?.short_description?.toLowerCase?.() || '';
-    //     const medium = product.marketing_copy?.medium_description?.toLowerCase?.() || '';
-    //     const minorDes = product.classification?.minor_class_description?.toLowerCase?.() || '';
-
-    //     // Combine all possible strings to scan
-    //     const allText = [...typeFromSpecPairs, short, medium, minorDes].join(' ');
-
-    //     const normalizedType = product.type?.toUpperCase?.();
-    //     const possibleMatches = typeProductValues[normalizedType] || [];
-
-    //     const matches = possibleMatches.filter(keyword => allText.includes(keyword.toLowerCase()));
-
-    //     return matches.length ? matches : null;
-    // },
-
-    // FreezerProductType: (product) => {
-    //     const code = product.classification?.minor_class_code?.toUpperCase() || "";
-    //     const height = parseFloat(product.classification?.height);
-    //     const short = product.marketing_copy?.short_description?.toLowerCase?.() || '';
-    //     const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
-    //     const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
-    //     const minorDes = product.classification?.minor_class_description?.toLowerCase?.() || '';
-
-
-    //     const allText = [short, medium, paragraph].join('');
-
-    //     if (code === "DRAWER") return "Freezer Drawers";
-    //     if (code === "CHFRZE" || allText.includes("chest")) return "Chest Freezer";
-    //     if (code === "UPFRZE" && height < 36) return "Undercounter";
-    //     if (code === "UPFRZE") return "Upright Freezer";
-
-    //     return null;
-    // },
-
     // DishwasherProductType: (product) => {
     //     console.log('🔍 classification:', product.classification);
-    //     const code = product.classification?.minor_class_code?.toUpperCase() || "";
-    //     const height = parseFloat(product.classification?.height);
-    //     const short = product.marketing_copy?.short_description?.toLowerCase?.() || '';
-    //     const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
-    //     const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase?.() || '';
-    //     const minorDes = product.classification?.minor_class_description?.toLowerCase?.() || '';
+    // const code = product.classification?.minor_class_code?.toUpperCase() || "";
+    // const height = parseFloat(product.classification?.height);
+    // const short = product.marketing_copy?.short_description?.toLowerCase?.() || '';
+    // const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+    // const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase?.() || '';
+    // const minorDes = product.classification?.minor_class_description?.toLowerCase?.() || '';
 
-    //     const color_code = (product.classification?.color_code_description || '').toLowerCase();
-    //     const allText = [short, medium, paragraph, minorDes].join(' ');
+    // const color_code = (product.classification?.color_code_description || '').toLowerCase();
+    // const allText = [short, medium, paragraph, minorDes].join(' ');
 
-    //     const types = [];
+    // const types = [];
 
     //     // Check for built-in via class code
     //     if (code === "DWBI") types.push("built in dishwasher");
@@ -250,7 +200,7 @@ export const filterValueExtractors = {
     //         /\bcutlery\s*organization\b/,
     //         /\butensil\s*(tray|rack)\b/,
     //     ];
-        
+
     //     for (const regex of cutleryTrayRegexes) {
     //         if (regex.test(allText)) {
     //             features.push("cutlery tray");
@@ -260,6 +210,319 @@ export const filterValueExtractors = {
 
     //     return features.length > 0 ? features : null;
     // },
+
+    // MicrowaveFeatures: (product) => {
+    //     const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
+    //     const image_features = product.marketing_copy?.image_features?.image_feature || [];
+    //     const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
+    //     const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
+    //     const short = product.marketing_copy?.short_description?.toLowerCase() || '';
+    //     const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+    //     const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
+    //     const hierarchical = (product.marketing_copy?.hierarchical_features_html || '')
+    //         .replace(/<[^>]*>/g, '')
+    //         .toLowerCase();
+
+    //     const allText = [
+    //         market_features,
+    //         image_titles,
+    //         image_description,
+    //         short,
+    //         medium,
+    //         paragraph,
+    //         hierarchical
+    //     ].join(' ');
+
+    //     const features = [];
+
+    //     const keywordMap = {
+    //         "turntable": /\bturntables?\b/,
+    //         "clock": /\bclock\b/,
+    //         "includes timer": /\b(includes?|with|comes with)\b.*\btimer\b|\btimer\b.*\bincluded\b/,
+    //         "light included": /\blight(s)?\b.*\b(included|included with|with light|lighting included)\b/,
+    //         "title 20 compliant": /\btitle\s*20\b.*\bcompliant\b/,
+    //         "end of cycle indicator": /\b(end|completion)\s+of\s+cycle\b|\bcycle\s+(complete|done|finished|indicator)\b/,
+    //         "sensor cooking": /\bsensor\b.*\bcook(ing)?\b|\bcook(ing)?\b.*\bsensor\b/,
+    //         "auto shut off": /\bauto(matic)?(ally)?\b.*\bshut\s*off\b|\bshuts?\s*off\b.*\bautomatically\b/,
+    //         "bulb included": /\bbulbs?\b.*\b(included|included with)\b|\bincludes?\s+bulbs?\b/,
+    //         "convection": /\bconvection\b/,
+    //         "warm function": /\bwarm(ing)?\b.*\bfunction\b|\bkeep(s)?\s+(warm|food warm)\b/,
+    //         "convertible to ductless / recirculating": /\bconvertible\b.*(ductless|recirculating)\b|\brecirculating\s+option\b/,
+    //         "ductless": /\bductless\b/,
+    //         "front loading": /\bfront[-\s]*load(ing)?\b/,
+    //         "rebate offered": /\brebate(s)?\b.*(available|offered|included)\b|\bqualifies?\s+for\s+rebate\b/,
+    //         "fingerprint resistant": /\bfingerprint[-\s]*(resistant|proof)\b/,
+    //         "ada": /\bADA\b|\baccessible\b/,
+    //         "baking element": /\bbaking\b.*\belement\b|\bbake\b.*\belement\b/,
+    //         "optional trim kit": /\btrim\s*kit\b.*(optional|available)\b|\b(optional)?\s*trim\s*kit\b/,
+    //         "smart home": /\bsmart\s+(home|device|technology)\b|\bwi[-\s]?fi\b|\bconnect(ed|ivity)\b|\bapp\s*control\b/,
+    //         "broil element": /\bbroil(ing)?\b.*\belement\b/,
+    //         "air fry": /\bair[-\s]?fry(ing)?\b/,
+    //         "made in america": /\bmade in (the )?usa\b|\bmade in america\b/i,
+    //         "sabbath mode": /\bsabbath\s*mode\b/,
+    //         "contains pfas chemicals": /\bcontains\b.*\bpfas\b|\bpfas\s*(chemicals?)?\b/,
+    //         "counter depth": /\bcounter[-\s]?depth\b/,
+    //         "includes thermostat": /\b(includes?|with|comes with)\b.*\bthermostat\b|\bthermostat\b.*(included|available)\b/,
+    //         "steam cooking": /\bsteam\b.*\bcook(ing)?\b/,
+    //         "energy star": /\benergy[-\s]?star\b.*(compliant|rated|qualified)?\b/,
+    //         "panel ready": /\bpanel\s*ready\b/,
+    //         "includes freezer": /\bincludes?\b.*\bfreezer\b|\bfreezer\b.*(included|with)\b/,
+    //         "automatic defrost": /\bauto(matic)?\s*defrost\b/,
+    //         "interior light": /\binterior\b.*\blight(s)?\b/,
+    //         "adjustable shelves": /\badjustable\b.*\bshelves\b|\bshelves\b.*\badjustable\b/,
+    //         "approved for commercial use": /\bcommercial\s+use\b|\bnsf[-\s]?certified\b/,
+    //         "leveling legs": /\blevel(ing)?\s+legs\b/,
+    //         "night light": /\bnight[-\s]*light\b/
+    //     };
+
+    //     for (const [label, regex] of Object.entries(keywordMap)) {
+    //         if (regex.test(allText)) {
+    //             features.push(label);
+    //         }
+    //     }
+
+    //     return features.length > 0 ? features : null;
+    // },
+
+    // OvenFeatures: (product) => {
+    //     const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
+    //     const image_features = product.marketing_copy?.image_features?.image_feature || [];
+    //     const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
+    //     const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
+    //     const short = product.marketing_copy?.short_description?.toLowerCase() || '';
+    //     const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+    //     const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
+    //     const hierarchical = (product.marketing_copy?.hierarchical_features_html || '')
+    //         .replace(/<[^>]*>/g, '')
+    //         .toLowerCase();
+
+    //     const allText = [
+    //         market_features,
+    //         image_titles,
+    //         image_description,
+    //         short,
+    //         medium,
+    //         paragraph,
+    //         hierarchical
+    //     ].join(' ');
+
+    //     const features = [];
+
+    //     const keywordMap = {
+    //         "convection": /\bconvection\b/,
+    //         "broil element": /\bbroil(ing)?\b.*\belement\b|\belement\b.*\bbroil(ing)?\b/,
+    //         "clock": /\bclock\b/,
+    //         "baking element": /\bbak(e|ing)\b.*\belement\b|\bbake\b.*\belement\b/,
+    //         "self cleaning": /\bself[-\s]?clean(ing)?\b|\bauto[-\s]?clean\b|\bautomatic(ally)?\s*clean\b|\bcleans itself\b/,
+    //         "sabbath mode": /\bsabbath\s+mode\b/i,
+    //         "includes timer": /\b(includes?|with|has)\b.*\btimer\b|\btimer\b.*\b(included|provided|available)\b/,
+    //         "interior light": /\binterior\b.*\blight(s)?\b|\blight(s)?\b.*\binterior\b/,
+    //         "light included": /\blight(s)?\b.*\b(included|provided|built-in|included with)\b/,
+    //         "smart home": /\bsmart\b.*\b(home|device|connected|tech|technology)\b|\bwi[-\s]?fi\b|\bapp\s*enabled\b/,
+    //         "air fry": /\bair\s*fry(ing)?\b/i,
+    //         "warm function": /\bwarm\b.*\bfunction\b|\bkeep warm\b|\bwarming\b/,
+    //         "meat thermometer": /\bmeat\b.*\bthermometer\b|\binternal\s+probe\b/,
+    //         "rebate offered": /\brebate\b.*(offered|available|eligible|qualif(y|ies|ication))\b/,
+    //         "auto shut off": /\bauto(matic)?(ally)?\b.*\bshut\s*off\b|\bshuts off automatically\b/,
+    //         "sensor cooking": /\bsensor\b.*\bcook(ing)?\b|\bcook(ing)?\b.*\bsensor\b/,
+    //         "ada": /\bADA\b/,
+    //         "made in america": /\bmade\s+in\s+(usa|america|united states)\b/i,
+    //         "combination oven": /\b(combination|combo|multi[-\s]?function)\b.*\boven\b/,
+    //         "title 20 compliant": /\btitle\s*20\b.*(compliant|certified|approved)?\b/,
+    //         "steam cooking": /\bsteam\b.*\bcook(ing)?\b/,
+    //         "fingerprint resistant": /\bfingerprint\b.*\bresistant\b/,
+    //         "humidity control": /\bhumidity\b.*\bcontrol\b/,
+    //         "front loading": /\bfront[-\s]*loading\b/,
+    //         "approved for commercial use": /\bcommercial\s*(use|approved|certified)\b|\bnsf[-\s]?certified\b/,
+    //         "contains pfas chemicals": /\bpfas\b|\bcontains\b.*\bpfas\b/i,
+    //         "lp conversion": /\blp\s*(conversion|kit)?\b|\bconvert(ed)?\s*(to|for)?\s*lp\b/i,
+    //         "turntable": /\bturntables?\b/,
+    //         "steam technology": /\bsteam\b.*\btechnology\b/,
+    //         "bulb included": /\bbulb(s)?\b.*\bincluded\b/,
+    //         "door viewer": /\bdoor\b.*\bviewer\b/,
+    //     };
+
+
+    //     for (const [label, regex] of Object.entries(keywordMap)) {
+    //         if (regex.test(allText)) {
+    //             features.push(label);
+    //         }
+    //     }
+
+    //     return features.length > 0 ? features : null;
+    // },
+
+    // BbqFeatures: (product) => {
+    //     const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
+    //     const image_features = product.marketing_copy?.image_features?.image_feature || [];
+    //     const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
+    //     const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
+    //     const short = product.marketing_copy?.short_description?.toLowerCase() || '';
+    //     const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+    //     const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
+    //     const hierarchical = (product.marketing_copy?.hierarchical_features_html || '')
+    //         .replace(/<[^>]*>/g, '')
+    //         .toLowerCase();
+
+    //     const allText = [
+    //         market_features,
+    //         image_titles,
+    //         image_description,
+    //         short,
+    //         medium,
+    //         paragraph,
+    //         hierarchical
+    //     ].join(' ');
+
+    //     const features = [];
+
+    //     const keywordMap = {
+    //         "outdoor approved": /\boutdoor\b.*\bapproved\b|\bapproved\s*for\s*outdoor\b/i,
+    //         "light included": /\blight(s)?\b.*\b(included|provided|built-in|with light)\b/i,
+    //         "rotisserie": /\brotisser(ie|y)\b/i,
+    //         "made in america": /\bmade\s+in\s+(usa|america|united states)\b/i,
+    //         "includes thermostat": /\b(includes?|with)\b.*\bthermostat\b|\bthermostat\b.*\b(included|provided|built-in)?\b/i,
+    //         "rust resistant": /\brust\b.*\bresist(ant|ance)\b/i,
+    //         "with casters": /\bcasters?\b|\bwith\s+casters\b/i,
+    //         "assembly required": /\bassembly\s+(required|needed|necessary)\b/i,
+    //         "lp conversion": /\blp\s*(conversion|kit)?\b|\bconvert(ed)?\s*(to|for)?\s*lp\b/i,
+    //         "rebate offered": /\brebate\b.*(offered|available|eligible|qualif(y|ies|ication))\b/i,
+    //         "overheat protection": /\boverheat\b.*\bprotection\b|\bprotection\b.*\boverheat\b/i,
+    //         "ada": /\bADA\b/i,
+    //         "approved for commercial use": /\bcommercial\s*(use|approved|certified)\b|\bnsf[-\s]?certified\b/i,
+    //         "energy star": /\benergy\s*star\b|\bENERGY\s*STAR\s*qualified\b/i,
+    //     };
+
+    //     for (const [label, regex] of Object.entries(keywordMap)) {
+    //         if (regex.test(allText)) {
+    //             features.push(label);
+    //         }
+    //     }
+
+    //     return features.length > 0 ? features : null;
+    // },
+
+    // CoffeeFeatures: (product) => {
+    //     const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
+    //     const image_features = product.marketing_copy?.image_features?.image_feature || [];
+    //     const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
+    //     const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
+    //     const short = product.marketing_copy?.short_description?.toLowerCase() || '';
+    //     const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+    //     const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
+    //     const hierarchical = (product.marketing_copy?.hierarchical_features_html || '')
+    //         .replace(/<[^>]*>/g, '')
+    //         .toLowerCase();
+
+    //     const allText = [
+    //         market_features,
+    //         image_titles,
+    //         image_description,
+    //         short,
+    //         medium,
+    //         paragraph,
+    //         hierarchical
+    //     ].join(' ');
+
+    //     const features = [];
+
+    //     const keywordMap = {
+    //         "programmable": /\bprogrammable\b|\bprogram\s+(settings|control|options)\b/i,
+    //         "includes grinder": /\b(includes?|with|has)\b.*\bgrinder\b|\bgrinder\b.*\b(included|built[-\s]?in|provided)\b/i,
+    //         "auto shut off": /\bauto(matic)?(ally)?\b.*\bshut\s*off\b|\bshuts off automatically\b/i,
+    //         "rebate offered": /\brebate\b.*(offered|available|eligible|qualif(y|ies|ication))\b/i,
+    //         "water filtration": /\bwater\b.*\bfiltration\b|\bfiltration\b.*\bwater\b/i,
+    //         "ada": /\bADA\b/i,
+    //         "approved for commercial use": /\bcommercial\s*(use|approved|certified)\b|\bnsf[-\s]?certified\b/i,
+    //         "standby timer": /\bstandby\b.*\btimer\b|\btimer\b.*\bstandby\b/i,
+    //     };
+
+    //     for (const [label, regex] of Object.entries(keywordMap)) {
+    //         if (regex.test(allText)) {
+    //             features.push(label);
+    //         }
+    //     }
+
+    //     return features.length > 0 ? features : null;
+    // },
+
+    LaundryFeatures: (product) => {
+        const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
+        const image_features = product.marketing_copy?.image_features?.image_feature || [];
+        const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
+        const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
+        const short = product.marketing_copy?.short_description?.toLowerCase() || '';
+        const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+        const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
+        const hierarchical = (product.marketing_copy?.hierarchical_features_html || '').replace(/<[^>]*>/g, '').toLowerCase();
+      
+        const allText = [
+          market_features,
+          image_titles,
+          image_description,
+          short,
+          medium,
+          paragraph,
+          hierarchical,
+        ].join(' ');
+      
+        const features = [];
+      
+        const featureRegexMap = {
+          "top loading": [/\btop[-\s]?loading\b/],
+          "energy star": [/\benergy\s*star\b/],
+          "title 20 compliant": [/\btitle\s*20\s*compliant\b/],
+          "front loading": [/\bfront[-\s]?loading\b/],
+          "stackable": [/\bstackable\b/],
+          "smart home": [/\bsmart\s*home\b/, /\bsmart\s*enabled\b/],
+          "made in america": [/\bmade\s*in\s*america\b/, /\bamerican[-\s]?made\b/],
+          "sanitary rinse": [
+            /\bsani(tary)?[-\s]?rinse\b/,
+            /\bsanitize[-\s]?rinse\b/,
+            /\bsanitary\s*cycle\b/,
+            /\brinse\b.*\bsanitize\b/
+          ],
+          "agitator": [/\bagitator\b/],
+          "steam technology": [
+            /\bsteam\s*technology\b/,
+            /\bsteam[-\s]?assist\b/,
+            /\bsteam\s*clean(ing)?\b/
+          ],
+          "impeller": [/\bimpeller\b/],
+          "ada": [/\bADA\b/, /\bADA\s*(compliant|certified)?\b/],
+          "interior light": [/\binterior\s*light\b/, /\blight\s*(included)?\b/],
+          "approved for commercial use": [
+            /\bapproved\s*for\s*commercial\s*use\b/,
+            /\bcommercial[-\s]*grade\b/
+          ],
+          "pedestal included": [/\bpedestal\s*included\b/],
+          "pet friendly": [/\bpet\s*friendly\b/],
+          "eco friendly": [/\beco[-\s]*friendly\b/],
+          "fingerprint resistant": [/\bfingerprint\s*resistant\b/],
+          "humidity sensing": [/\bhumidity\s*sensing\b/, /\bmoisture\s*(sensing|sensor)\b/],
+          "rebate offered": [/\brebate\s*(available|offered)?\b/],
+          "end of cycle indicator": [
+            /\bend\s*of\s*cycle\s*indicator\b/,
+            /\bcycle\s*end\s*(alert|chime|signal)\b/
+          ],
+          "sensor dry": [/\bsensor\s*dry\b/, /\bauto\s*dry\b/],
+          "lp conversion": [/\bLP\s*conversion\b/, /\bconvertible\s*to\s*LP\b/],
+          "vent free": [/\bvent[-\s]?free\b/],
+          "quick ship": [/\bquick\s*ship(ping)?\b/],
+          "light included": [/\blight\s*included\b/],
+        };
+      
+        for (const [label, regexes] of Object.entries(featureRegexMap)) {
+          if (regexes.some((regex) => regex.test(allText))) {
+            features.push(label);
+          }
+        }
+      
+        return features.length ? features : null;
+      },
+      
+
+
 
     // DishwasherWidth: (product) => {
 
@@ -316,29 +579,27 @@ export const filterValueExtractors = {
     //     if (raw >= 16 && raw < 19) return '18"';
     //     if (raw >= 22 && raw < 25) return '24"';
 
-
-
     //     return null; // fallback
     // },
 
-    MicroProductType: (product) => {
-        const code = product.classification?.minor_class_code?.toUpperCase() || "";
-        const height = parseFloat(product.classification?.height);
-        const short = product.marketing_copy?.short_description?.toLowerCase?.() || '';
-        const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
-        const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
-        const minorDes = product.classification?.minor_class_description?.toLowerCase?.() || '';
+    // MicroProductType: (product) => {
+    //     const code = product.classification?.minor_class_code?.toUpperCase() || "";
+    //     const height = parseFloat(product.classification?.height);
+    //     const short = product.marketing_copy?.short_description?.toLowerCase?.() || '';
+    //     const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+    //     const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
+    //     const minorDes = product.classification?.minor_class_description?.toLowerCase?.() || '';
 
 
-        const allText = [short, medium, paragraph].join('');
+    //     const allText = [short, medium, paragraph].join('');
 
-        if (code === "HALOGN") return "halogen light";
-        if (code === "MICBI") return "built in microwave";
-        if (code === "MICOR" ) return "over the range micorwave";
-        if (code === "MICCO") return "countertop";
+    //     if (code === "HALOGN") return "halogen light";
+    //     if (code === "MICBI") return "built in microwave";
+    //     if (code === "MICOR" ) return "over the range micorwave";
+    //     if (code === "MICCO") return "countertop";
 
-        return null;
-    },
+    //     return null;
+    // },
 
     // MicrowaveWidth: (product) => {
 
@@ -433,8 +694,8 @@ export const filterValueExtractors = {
     //     const builtInRegex = /\bbuilt[-\s]?in\b|builtin\b/;
     //     const counterTopRegex = /\bcounter[\s-]?top\b/;
 
-    //     if (builtInRegex.test(description) || builtInRegex.test(allText)) return "Built In";
-    //     if (counterTopRegex.test(description) || counterTopRegex.test(allText)) return "CounterTop";
+    //     if (builtInRegex.test(description) || builtInRegex.test(allText)) return "built in";
+    //     if (counterTopRegex.test(description) || counterTopRegex.test(allText)) return "counter top";
 
     //     return null;
     // },
@@ -448,9 +709,9 @@ export const filterValueExtractors = {
     //     const allText = [short, medium, paragraph].join('');
 
     //     const types = [];
-    //     if (minor_code.includes('BBQPRO')) types.push('Pro Style');
-    //     if (minor_code.includes('BBQPL')) types.push('Pellet BBQ');
-    //     if (minor_code.includes('BBQCH')) types.push('Charcoal BBQ');
+    // if (minor_code.includes('BBQPRO')) types.push('pro style');
+    // if (minor_code.includes('BBQPL')) types.push('pellet bbq');
+    // if (minor_code.includes('BBQCH')) types.push('charcoal bbq');
 
     //     const sideBurnerRegex = /\bside[-\s]?burner(s)?\b/i;
     //     const exclusionRegex = /\b(optional|includes?|with|featuring)\b.{0,30}side[-\s]?burner(s)?\b/i;
@@ -458,10 +719,29 @@ export const filterValueExtractors = {
     //     if (sideBurnerRegex.test(allText) &&
     //         !exclusionRegex.test(allText) &&
     //         brandCode !== 'BROILKING') {
-    //         types.push('Side Burners');
+    //         types.push('side burners');
     //     }
 
     //     return types.length ? types : null;
+    // },
+
+    // FreezerProductType: (product) => {
+    //     const code = product.classification?.minor_class_code?.toUpperCase() || "";
+    //     const height = parseFloat(product.classification?.height);
+    //     const short = product.marketing_copy?.short_description?.toLowerCase?.() || '';
+    //     const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+    //     const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
+    //     const minorDes = product.classification?.minor_class_description?.toLowerCase?.() || '';
+
+
+    //     const allText = [short, medium, paragraph].join('');
+
+    //     if (code === "DRAWER") return "freezer drawers";
+    //     if (code === "CHFRZE" || allText.includes("chest")) return "chest freezer";
+    //     if (code === "UPFRZE" && height < 36) return "undercounter";
+    //     if (code === "UPFRZE") return "upright freezer";
+
+    //     return null;
     // },
 
     // LaundryProductType: (product) => {
@@ -470,7 +750,7 @@ export const filterValueExtractors = {
 
     //     if (minor_code.includes('PDSTL')) types.push('Laundry Accessories');
     //     if (["DRYE", "COMMD", "DRYTME", "DRYTMG", "DRYEF", "DRYGF", "DRYG", "DRYP"].includes(minor_code)) types.push('Dryers');
-    //     if (["WASHF", "WASHT", "WASHHE", "WASHP"].includes(minor_code)) types.push('Washers');
+    //     if (["WASHF", "WASHT", "WASHHE", "WASHP", "COMMW"].includes(minor_code)) types.push('Washers');
     //     if (["WASHCE", "WASHCG"].includes(minor_code)) types.push('Washer Dryer Combos')
     //     if (["STEAM"].includes(minor_code)) types.push('Garment Steamers')
     //     if (["COMMC", "WASHC"].includes(minor_code)) types.push('WashTowers')
@@ -482,6 +762,428 @@ export const filterValueExtractors = {
 
 
 
+    // // 1. Try to extract width from minor first
+    // let raw = null;
+
+    // if (typeof product.minor === 'string') {
+    //     const match = product.minor.match(/(\d{2})(?=")/);
+    //     if (match) {
+    //         raw = parseInt(match[1], 10);
+    //         // console.log(`🟢 Width from MINOR: ${product.minor} → ${raw}"`);
+    //     }
+    // }
+    // // console.log('📦 Checking fallback width from classification:', product.classification);
+    // // 2. Fallback to classification fields if needed
+    // if (raw === null) {
+    //     const rawString =
+    //         product.classification?.nominal_width_in_inches_string ||
+    //         product.classification?.width_string ||
+    //         String(product.classification?.width || '');
+
+    //     if (rawString) {
+    //         // Match patterns like "35 7/8", "36", or "35.875"
+    //         const match = rawString.match(/(\d+)(?:\s+(\d+\/\d+))?/);
+
+    //         if (match) {
+    //             const whole = parseInt(match[1], 10);
+    //             const fraction = match[2] ? eval(match[2]) : 0;
+    //             let numeric = whole + fraction;
+
+    //             const upper = rawString.toUpperCase();
+    //             if (upper.includes('CM')) numeric *= 0.393701;
+    //             else if (upper.includes('MM') || numeric > 100) numeric *= 0.0393701;
+
+    //             raw = Math.round(numeric);
+    //             // console.log(`🟡 Width from CLASSIFICATION: ${rawString} → ${numeric}"`);
+    //         } else {
+    //             // fallback if above didn't match
+    //             const cleaned = rawString.replace(/[^\d.]/g, '');
+    //             let numeric = parseFloat(cleaned);
+    //             if (!isNaN(numeric)) {
+    //                 raw = Math.round(numeric);
+    //                 // console.log(`🟡 (fallback) Width from CLASSIFICATION: ${rawString} → ${numeric}"`);
+    //             }
+    //         }
+    //     }
+    // }
+
+    // if (raw === null || isNaN(raw)) return null;
+    // console.log(`📏 Final raw width for product: ${raw}"`);
+    // // 🎯 Map to predefined width ranges
+    // if (raw <= 22) return '23" and Less';
+    // if (raw >= 23 && raw < 27) return '24"';
+    // if (raw >= 27 && raw < 33) return '30"';
+    // if (raw >= 33 && raw < 39) return '36"';
+    // if (raw >= 39 && raw < 45) return '42"';
+    // if (raw >= 45 && raw < 54) return '48"';
+    // if (raw >= 54 && raw < 61) return '60"';
+    // if (raw >= 61) return '61" and above';
+
+    // return null; // fallback
+    // },
+
+    // LaundryWidth: (product) => {
+
+    //     // 1. Try to extract width from minor first
+    //     let raw = null;
+
+    //     if (typeof product.minor === 'string') {
+    //         const match = product.minor.match(/(\d{2})(?=")/);
+    //         if (match) {
+    //             raw = parseInt(match[1], 10);
+    //             // console.log(`🟢 Width from MINOR: ${product.minor} → ${raw}"`);
+    //         }
+    //     }
+    //     // console.log('📦 Checking fallback width from classification:', product.classification);
+    //     // 2. Fallback to classification fields if needed
+    //     if (raw === null) {
+    //         const rawString =
+    //             product.classification?.nominal_width_in_inches_string ||
+    //             product.classification?.width_string ||
+    //             String(product.classification?.width || '');
+
+    //         if (rawString) {
+    //             // Match patterns like "35 7/8", "36", or "35.875"
+    //             const match = rawString.match(/(\d+)(?:\s+(\d+\/\d+))?/);
+
+    //             if (match) {
+    //                 const whole = parseInt(match[1], 10);
+    //                 const fraction = match[2] ? eval(match[2]) : 0;
+    //                 let numeric = whole + fraction;
+
+    //                 const upper = rawString.toUpperCase();
+    //                 if (upper.includes('CM')) numeric *= 0.393701;
+    //                 else if (upper.includes('MM') || numeric > 100) numeric *= 0.0393701;
+
+    //                 raw = Math.round(numeric);
+    //                 // console.log(`🟡 Width from CLASSIFICATION: ${rawString} → ${numeric}"`);
+    //             } else {
+    //                 // fallback if above didn't match
+    //                 const cleaned = rawString.replace(/[^\d.]/g, '');
+    //                 let numeric = parseFloat(cleaned);
+    //                 if (!isNaN(numeric)) {
+    //                     raw = Math.round(numeric);
+    //                     // console.log(`🟡 (fallback) Width from CLASSIFICATION: ${rawString} → ${numeric}"`);
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     if (raw === null || isNaN(raw)) return null;
+    //     console.log(`📏 Final raw width for product: ${raw}"`);
+    //     // 🎯 Map to predefined width ranges
+    //     if (raw <= 19) return '20" and Less';
+    //     if (raw >= 20 && raw < 22) return '21"';
+    //     if (raw >= 23 && raw < 25) return '24"';
+    //     if (raw >= 26 && raw < 28) return '27"';
+    //     if (raw >= 29 && raw < 31) return '30"';
+    //     if (raw >= 32) return '31" and above';
+
+    //     return null; // fallback
+    // },
+
+
+    // IceMakerWidth: (product) => {
+
+    //     // 1. Try to extract width from minor first
+    //     let raw = null;
+
+    //     if (typeof product.minor === 'string') {
+    //         const match = product.minor.match(/(\d{2})(?=")/);
+    //         if (match) {
+    //             raw = parseInt(match[1], 10);
+    //             // console.log(`🟢 Width from MINOR: ${product.minor} → ${raw}"`);
+    //         }
+    //     }
+    //     // console.log('📦 Checking fallback width from classification:', product.classification);
+    //     // 2. Fallback to classification fields if needed
+    //     if (raw === null) {
+    //         const rawString =
+    //             product.classification?.nominal_width_in_inches_string ||
+    //             product.classification?.width_string ||
+    //             String(product.classification?.width || '');
+
+    //         if (rawString) {
+    //             // Match patterns like "35 7/8", "36", or "35.875"
+    //             const match = rawString.match(/(\d+)(?:\s+(\d+\/\d+))?/);
+
+    //             if (match) {
+    //                 const whole = parseInt(match[1], 10);
+    //                 const fraction = match[2] ? eval(match[2]) : 0;
+    //                 let numeric = whole + fraction;
+
+    //                 const upper = rawString.toUpperCase();
+    //                 if (upper.includes('CM')) numeric *= 0.393701;
+    //                 else if (upper.includes('MM') || numeric > 100) numeric *= 0.0393701;
+
+    //                 raw = Math.round(numeric);
+    //                 // console.log(`🟡 Width from CLASSIFICATION: ${rawString} → ${numeric}"`);
+    //             } else {
+    //                 // fallback if above didn't match
+    //                 const cleaned = rawString.replace(/[^\d.]/g, '');
+    //                 let numeric = parseFloat(cleaned);
+    //                 if (!isNaN(numeric)) {
+    //                     raw = Math.round(numeric);
+    //                     // console.log(`🟡 (fallback) Width from CLASSIFICATION: ${rawString} → ${numeric}"`);
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     if (raw === null || isNaN(raw)) return null;
+    //     console.log(`📏 Final raw width for product: ${raw}"`);
+    //     // 🎯 Map to predefined width ranges
+    //     if (raw <= 13) return '14" and Less';
+    //     if (raw >= 14 && raw < 16) return '15"';
+    //     if (raw >= 17 && raw < 19) return '18"';
+    //     if (raw >= 20 && raw < 22) return '21"';
+    //     if (raw >= 23 && raw < 25) return '24"';
+    //     if (raw >= 26) return '25" and above';
+
+    //     return null; // fallback
+    // },
+
+
+    // CoffeeWidth: (product) => {
+
+    //     // 1. Try to extract width from minor first
+    //     let raw = null;
+
+    //     if (typeof product.minor === 'string') {
+    //         const match = product.minor.match(/(\d{2})(?=")/);
+    //         if (match) {
+    //             raw = parseInt(match[1], 10);
+    //             // console.log(`🟢 Width from MINOR: ${product.minor} → ${raw}"`);
+    //         }
+    //     }
+    //     // console.log('📦 Checking fallback width from classification:', product.classification);
+    //     // 2. Fallback to classification fields if needed
+    //     if (raw === null) {
+    //         const rawString =
+    //             product.classification?.nominal_width_in_inches_string ||
+    //             product.classification?.width_string ||
+    //             String(product.classification?.width || '');
+
+    //         if (rawString) {
+    //             // Match patterns like "35 7/8", "36", or "35.875"
+    //             const match = rawString.match(/(\d+)(?:\s+(\d+\/\d+))?/);
+
+    //             if (match) {
+    //                 const whole = parseInt(match[1], 10);
+    //                 const fraction = match[2] ? eval(match[2]) : 0;
+    //                 let numeric = whole + fraction;
+
+    //                 const upper = rawString.toUpperCase();
+    //                 if (upper.includes('CM')) numeric *= 0.393701;
+    //                 else if (upper.includes('MM') || numeric > 100) numeric *= 0.0393701;
+
+    //                 raw = Math.round(numeric);
+    //                 // console.log(`🟡 Width from CLASSIFICATION: ${rawString} → ${numeric}"`);
+    //             } else {
+    //                 // fallback if above didn't match
+    //                 const cleaned = rawString.replace(/[^\d.]/g, '');
+    //                 let numeric = parseFloat(cleaned);
+    //                 if (!isNaN(numeric)) {
+    //                     raw = Math.round(numeric);
+    //                     // console.log(`🟡 (fallback) Width from CLASSIFICATION: ${rawString} → ${numeric}"`);
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     if (raw === null || isNaN(raw)) return null;
+    //     console.log(`📏 Final raw width for product: ${raw}"`);
+
+    //     if (raw >= 23 && raw < 25) return '24"';
+    //     if (raw >= 29 && raw < 31) return '30"';
+
+    //     return null;
+    // },
+
+
+    // HoodWidth: (product) => {
+    //     let raw = null;
+
+    //     if (typeof product.minor === 'string') {
+    //         const match = product.minor.match(/(\d{2})(?=")/);
+    //         if (match) {
+    //             raw = parseInt(match[1], 10);
+    //             // console.log(`🟢 Width from MINOR: ${product.minor} → ${raw}"`);
+    //         }
+    //     }
+    //     // console.log('📦 Checking fallback width from classification:', product.classification);
+    //     // 2. Fallback to classification fields if needed
+    //     if (raw === null) {
+    //         const rawString =
+    //             product.classification?.nominal_width_in_inches_string ||
+    //             product.classification?.width_string ||
+    //             String(product.classification?.width || '');
+
+    //         if (rawString) {
+    //             // Match patterns like "35 7/8", "36", or "35.875"
+    //             const match = rawString.match(/(\d+)(?:\s+(\d+\/\d+))?/);
+
+    //             if (match) {
+    //                 const whole = parseInt(match[1], 10);
+    //                 const fraction = match[2] ? eval(match[2]) : 0;
+    //                 let numeric = whole + fraction;
+
+    //                 const upper = rawString.toUpperCase();
+    //                 if (upper.includes('CM')) numeric *= 0.393701;
+    //                 else if (upper.includes('MM') || numeric > 100) numeric *= 0.0393701;
+
+    //                 raw = Math.round(numeric);
+    //                 // console.log(`🟡 Width from CLASSIFICATION: ${rawString} → ${numeric}"`);
+    //             } else {
+    //                 // fallback if above didn't match
+    //                 const cleaned = rawString.replace(/[^\d.]/g, '');
+    //                 let numeric = parseFloat(cleaned);
+    //                 if (!isNaN(numeric)) {
+    //                     raw = Math.round(numeric);
+    //                     // console.log(`🟡 (fallback) Width from CLASSIFICATION: ${rawString} → ${numeric}"`);
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     if (raw === null || isNaN(raw)) return null;
+    //     console.log(`📏 Final raw width for product: ${raw}"`);
+
+    //     // Now map raw width into the correct range
+    //     if (raw < 18) return '17" or Less';
+    //     if (raw >= 18 && raw <= 23) return '18"-23"';
+    //     if (raw >= 24 && raw <= 36) return '24"-36"';
+    //     if (raw >= 37 && raw <= 48) return '37"-48"';
+    //     if (raw >= 49 && raw <= 66) return '49"-66"';
+    //     if (raw > 66) return '67" or more';
+
+    //     // If width falls outside defined groups, return null
+    //     return null;
+    // },
+
+    // WarmingDrawerWidth: (product) => {
+    //     // 1. Try to extract width from minor first
+    //     let raw = null;
+
+    //     if (typeof product.minor === 'string') {
+    //         const match = product.minor.match(/(\d{2})(?=")/);
+    //         if (match) {
+    //             raw = parseInt(match[1], 10);
+    //             // console.log(`🟢 Width from MINOR: ${product.minor} → ${raw}"`);
+    //         }
+    //     }
+    //     // console.log('📦 Checking fallback width from classification:', product.classification);
+    //     // 2. Fallback to classification fields if needed
+    //     if (raw === null) {
+    //         const rawString =
+    //             product.classification?.nominal_width_in_inches_string ||
+    //             product.classification?.width_string ||
+    //             String(product.classification?.width || '');
+
+    //         if (rawString) {
+    //             // Match patterns like "35 7/8", "36", or "35.875"
+    //             const match = rawString.match(/(\d+)(?:\s+(\d+\/\d+))?/);
+
+    //             if (match) {
+    //                 const whole = parseInt(match[1], 10);
+    //                 const fraction = match[2] ? eval(match[2]) : 0;
+    //                 let numeric = whole + fraction;
+
+    //                 const upper = rawString.toUpperCase();
+    //                 if (upper.includes('CM')) numeric *= 0.393701;
+    //                 else if (upper.includes('MM') || numeric > 100) numeric *= 0.0393701;
+
+    //                 raw = Math.round(numeric);
+    //                 // console.log(`🟡 Width from CLASSIFICATION: ${rawString} → ${numeric}"`);
+    //             } else {
+    //                 // fallback if above didn't match
+    //                 const cleaned = rawString.replace(/[^\d.]/g, '');
+    //                 let numeric = parseFloat(cleaned);
+    //                 if (!isNaN(numeric)) {
+    //                     raw = Math.round(numeric);
+    //                     // console.log(`🟡 (fallback) Width from CLASSIFICATION: ${rawString} → ${numeric}"`);
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     if (raw === null || isNaN(raw)) return null;
+    //     console.log(`📏 Final raw width for product: ${raw}"`);
+    //     // 🎯 Map to predefined width ranges
+    //     if (raw <= 19) return '20" and Less';
+    //     if (raw >= 19.5 && raw < 22) return '21"';
+    //     if (raw >= 23 && raw < 25) return '24"';
+    //     if (raw >= 26 && raw < 28) return '27"';
+    //     if (raw >= 29 && raw < 31) return '30"';
+    //     if (raw >= 32) return '31" and above';
+
+    //     return null;
+    // },
+
+    // BbqWidth: (product) => {
+    //     // 1. Try to extract width from minor first
+    //     let raw = null;
+
+    //     if (typeof product.minor === 'string') {
+    //         const match = product.minor.match(/(\d{2})(?=")/);
+    //         if (match) {
+    //             raw = parseInt(match[1], 10);
+    //             // console.log(`🟢 Width from MINOR: ${product.minor} → ${raw}"`);
+    //         }
+    //     }
+    //     // console.log('📦 Checking fallback width from classification:', product.classification);
+    //     // 2. Fallback to classification fields if needed
+    //     if (raw === null) {
+    //         const rawString =
+    //             product.classification?.nominal_width_in_inches_string ||
+    //             product.classification?.width_string ||
+    //             String(product.classification?.width || '');
+
+    //         if (rawString) {
+    //             // Match patterns like "35 7/8", "36", or "35.875"
+    //             const match = rawString.match(/(\d+)(?:\s+(\d+\/\d+))?/);
+
+    //             if (match) {
+    //                 const whole = parseInt(match[1], 10);
+    //                 const fraction = match[2] ? eval(match[2]) : 0;
+    //                 let numeric = whole + fraction;
+
+    //                 const upper = rawString.toUpperCase();
+    //                 if (upper.includes('CM')) numeric *= 0.393701;
+    //                 else if (upper.includes('MM') || numeric > 100) numeric *= 0.0393701;
+
+    //                 raw = Math.round(numeric);
+    //                 // console.log(`🟡 Width from CLASSIFICATION: ${rawString} → ${numeric}"`);
+    //             } else {
+    //                 // fallback if above didn't match
+    //                 const cleaned = rawString.replace(/[^\d.]/g, '');
+    //                 let numeric = parseFloat(cleaned);
+    //                 if (!isNaN(numeric)) {
+    //                     raw = Math.round(numeric);
+    //                     // console.log(`🟡 (fallback) Width from CLASSIFICATION: ${rawString} → ${numeric}"`);
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     if (raw === null || isNaN(raw)) return null;
+    //     console.log(`📏 Final raw width for product: ${raw}"`);
+    //     // 🎯 Map to predefined width ranges
+    //     if (raw <= 22) return '23" and Less';
+    //     if (raw >= 23 && raw < 27) return '24"';
+    //     if (raw >= 27 && raw < 33) return '30"';
+    //     if (raw >= 33 && raw < 39) return '36"';
+    //     if (raw >= 39 && raw < 45) return '42"';
+    //     if (raw >= 45 && raw < 50) return '48"';
+    //     if (raw >= 51 && raw < 53) return '52"';
+    //     if (raw >= 54 && raw < 58) return '56"';
+    //     if (raw >= 59 && raw < 61) return '60"';
+    //     if (raw >= 61) return '61" and above';
+
+    //     return null; // fallback
+    // },
+
+    // CooktopWidth: (product) => {
     //     // 1. Try to extract width from minor first
     //     let raw = null;
 
@@ -542,65 +1244,184 @@ export const filterValueExtractors = {
     //     return null; // fallback
     // },
 
-    // Width: (product) => {
-    //     const rawString =
-    //         product.classification?.width_string ||
-    //         product.classification?.nominal_width_in_inches_string ||
-    //         String(product.classification?.width || '');
+    // OvenWidth: (product) => {
+    //     // 1. Try to extract width from minor first
+    //     let raw = null;
 
-    //     if (!rawString) return null;
+    //     if (typeof product.minor === 'string') {
+    //         const match = product.minor.match(/(\d{2})(?=")/);
+    //         if (match) {
+    //             raw = parseInt(match[1], 10);
+    //             // console.log(`🟢 Width from MINOR: ${product.minor} → ${raw}"`);
+    //         }
+    //     }
+    //     // console.log('📦 Checking fallback width from classification:', product.classification);
+    //     // 2. Fallback to classification fields if needed
+    //     if (raw === null) {
+    //         const rawString =
+    //             product.classification?.nominal_width_in_inches_string ||
+    //             product.classification?.width_string ||
+    //             String(product.classification?.width || '');
 
-    //     let raw = parseFloat(rawString);
-    //     if (isNaN(raw)) return null;
+    //         if (rawString) {
+    //             // Match patterns like "35 7/8", "36", or "35.875"
+    //             const match = rawString.match(/(\d+)(?:\s+(\d+\/\d+))?/);
 
-    //     const upper = rawString.toUpperCase();
+    //             if (match) {
+    //                 const whole = parseInt(match[1], 10);
+    //                 const fraction = match[2] ? eval(match[2]) : 0;
+    //                 let numeric = whole + fraction;
 
-    //     // Convert CM or MM to inches
-    //     if (upper.includes('CM')) {
-    //         raw *= 0.393701;
-    //     } else if (upper.includes('MM') || raw > 100) {
-    //         // Assume MM if value is too large to be inches (e.g., 900mm)
-    //         raw *= 0.0393701; // 1 mm = 0.0393701 inches
+    //                 const upper = rawString.toUpperCase();
+    //                 if (upper.includes('CM')) numeric *= 0.393701;
+    //                 else if (upper.includes('MM') || numeric > 100) numeric *= 0.0393701;
+
+    //                 raw = Math.round(numeric);
+    //                 // console.log(`🟡 Width from CLASSIFICATION: ${rawString} → ${numeric}"`);
+    //             } else {
+    //                 // fallback if above didn't match
+    //                 const cleaned = rawString.replace(/[^\d.]/g, '');
+    //                 let numeric = parseFloat(cleaned);
+    //                 if (!isNaN(numeric)) {
+    //                     raw = Math.round(numeric);
+    //                     // console.log(`🟡 (fallback) Width from CLASSIFICATION: ${rawString} → ${numeric}"`);
+    //                 }
+    //             }
+    //         }
     //     }
 
-    //     // Round to nearest multiple of 6
-    //     const rounded = Math.round(raw / 6) * 6;
-    //     return `${rounded}"`;
-    // },
+    //     if (raw === null || isNaN(raw)) return null;
+    //     console.log(`📏 Final raw width for product: ${raw}"`);
+    //     // 🎯 Map to predefined width ranges
+    //     if (raw <= 22) return '23" and Less';
+    //     if (raw >= 23 && raw < 27) return '24"';
+    //     if (raw >= 27 && raw < 33) return '30"';
+    //     if (raw >= 33 && raw < 38) return '36"';
+    //     if (raw >= 39) return '37" and above';
 
-    // HoodWidth: (product) => {
-    //     const rawString =
-    //         product.classification?.nominal_width_in_inches_string ||
-    //         product.classification?.width ||
-    //         product.classification?.width_string;
-
-    //     if (!rawString) return null;
-
-    //     let raw = parseFloat(rawString);
-    //     if (isNaN(raw)) return null;
-
-    //     // Handle conversion if width is in CM
-    //     if (rawString.toUpperCase().includes('CM')) {
-    //         raw = raw * 0.393701; // 1 cm = 0.393701 inches
-    //     }
-
-    //     const type = product.type?.toUpperCase();
-    //     if (type !== 'VENTILATION') return null; // Only apply to VENTILATION
-
-    //     const widthOptions = typeWidthValues['VENTILATION'];
-    //     if (!widthOptions) return null;
-
-    //     // Now map raw width into the correct range
-    //     if (raw < 18) return 'under 18"';
-    //     if (raw >= 18 && raw <= 23) return '18"-23"';
-    //     if (raw >= 24 && raw <= 36) return '24"-36"';
-    //     if (raw >= 37 && raw <= 48) return '37"-48"';
-    //     if (raw >= 49 && raw <= 66) return '49"-66"';
-    //     if (raw > 66) return 'above 66"';
-
-    //     // If width falls outside defined groups, return null
     //     return null;
     // },
+
+    // CooktopProductType: (product) => {
+    //     const short = product.marketing_copy?.short_description?.toLowerCase?.() || '';
+    //     const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+    //     const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase?.() || '';
+    //     const minorDes = product.classification?.minor_class_description?.toLowerCase?.() || '';
+
+    //     const allText = [short, medium, paragraph, minorDes].join(' ');
+
+    //     if (allText.includes('rangetop') || allText.includes('range top') || allText.includes('range-top')) return 'rangetop';
+    //     if (allText.includes('cooktop') || allText.includes('cook top') || allText.includes('cook-top')) return 'cooktop';
+
+
+    //     return null;
+    // },
+
+    // CooktopFuelType: (product) => {
+    //     const code = product.classification?.minor_class_code?.toUpperCase() || "";
+    //     const height = parseFloat(product.classification?.height);
+    //     const short = product.marketing_copy?.short_description?.toLowerCase() || '';
+    //     const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+    //     const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
+    //     const minorDes = product.classification?.minor_class_description?.toLowerCase() || '';
+    //     const color_code = (product.classification?.color_code_description || '').toLowerCase();
+    //     const allText = [short, medium, paragraph, minorDes].join(' ');
+
+    //     const types = [];
+
+    //     if (allText.includes('induction')) types.push('induction');
+    //     if (code.includes('ERSURF')) types.push('electric');
+    //     if (code.includes('GRSURF')) types.push('gas');
+
+    //     return types.length ? types : null;
+
+    // },
+
+    // CooktopWidth: (product) => {
+    //     // 1. Try to extract width from minor first
+    //     let raw = null;
+
+    //     if (typeof product.minor === 'string') {
+    //         const match = product.minor.match(/(\d{2})(?=")/);
+    //         if (match) {
+    //             raw = parseInt(match[1], 10);
+    //             // console.log(`🟢 Width from MINOR: ${product.minor} → ${raw}"`);
+    //         }
+    //     }
+    //     // console.log('📦 Checking fallback width from classification:', product.classification);
+    //     // 2. Fallback to classification fields if needed
+    //     if (raw === null) {
+    //         const rawString =
+    //             product.classification?.nominal_width_in_inches_string ||
+    //             product.classification?.width_string ||
+    //             String(product.classification?.width || '');
+
+    //         if (rawString) {
+    //             // Match patterns like "35 7/8", "36", or "35.875"
+    //             const match = rawString.match(/(\d+)(?:\s+(\d+\/\d+))?/);
+
+    //             if (match) {
+    //                 const whole = parseInt(match[1], 10);
+    //                 const fraction = match[2] ? eval(match[2]) : 0;
+    //                 let numeric = whole + fraction;
+
+    //                 const upper = rawString.toUpperCase();
+    //                 if (upper.includes('CM')) numeric *= 0.393701;
+    //                 else if (upper.includes('MM') || numeric > 100) numeric *= 0.0393701;
+
+    //                 raw = Math.round(numeric);
+    //                 // console.log(`🟡 Width from CLASSIFICATION: ${rawString} → ${numeric}"`);
+    //             } else {
+    //                 // fallback if above didn't match
+    //                 const cleaned = rawString.replace(/[^\d.]/g, '');
+    //                 let numeric = parseFloat(cleaned);
+    //                 if (!isNaN(numeric)) {
+    //                     raw = Math.round(numeric);
+    //                     // console.log(`🟡 (fallback) Width from CLASSIFICATION: ${rawString} → ${numeric}"`);
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     if (raw === null || isNaN(raw)) return null;
+    //     console.log(`📏 Final raw width for product: ${raw}"`);
+    //     // 🎯 Map to predefined width cooktops
+    //     if (raw <= 22) return '23" and Less';
+    //     if (raw >= 23 && raw < 27) return '24"';
+    //     if (raw >= 27 && raw < 33) return '30"';
+    //     if (raw >= 33 && raw < 39) return '36"';
+    //     if (raw >= 39 && raw < 45) return '42"';
+    //     if (raw >= 45 && raw < 54) return '48"';
+    //     if (raw >= 54 && raw < 61) return '60"';
+    //     if (raw >= 61) return '61" and above';
+
+    //     return null; // fallback
+
+    // },
+
+    // HoodProductType: (product) => {
+
+    //     const code = product.classification?.minor_class_code?.toUpperCase() || "";
+    //     const height = parseFloat(product.classification?.height);
+    //     const short = product.marketing_copy?.short_description?.toLowerCase?.() || '';
+    //     const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+    //     const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
+    //     const minorDes = product.classification?.minor_class_description?.toLowerCase?.() || '';
+
+
+    //     const allText = [short, medium, paragraph].join('');
+
+    //     if (code === "DUCTED") return "ducted hood";
+    //     if (code === "DCTLES") return "ductless hood";
+    //     if (code === "PROHD" ) return "professional hood";
+    //     if (code === "CONVHD") return "convertible hood";
+    //     if (code === "INSERT") return "hood inserts";
+
+    //     return null;
+    // },
+
+
+
 
     // RefrigFeatures: (product) => {
     //     const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
@@ -783,75 +1604,13 @@ export const filterValueExtractors = {
     //     return features.length > 0 ? features : null;
     // },
 
-
-
-
-    //   Features: (product) => {
-    //     const type = product.type?.toUpperCase();
-    //     const predefined = typeFeatureValues[type];
-    //     const typeFromSpecPairs = [];
-    //     const specTable = product.marketing_copy?.spec_table_html?.spec_table_as_key_value_pairs || [];
-
-    //     specTable.forEach(section => {
-    //       section.key_value_pairs.forEach(pair => {
-    //         const key = pair.key?.toLowerCase?.() || '';
-    //         const value = pair.value?.toLowerCase?.() || '';
-    //         if (key.includes('type')) {
-    //           typeFromSpecPairs.push(value);
-    //         }
-    //       });
-    //     });
-
-    //     if (!predefined) return null;
-
-    //     const searchableStrings = [
-    //       ...(product.marketing_copy?.features?.feature || []),
-    //       product.marketing_copy?.short_description || '',
-    //       product.marketing_copy?.medium_description || '',
-    //       product.marketing_copy?.paragraph_description || '',
-    //     ].join(' ').toLowerCase();
-
-    //     return predefined.filter((feature) =>
-    //       searchableStrings.includes(feature.toLowerCase())
-    //     );
-    //   },
-
-    // Configuration: (product) => {
-    //     const type = product.type?.toUpperCase();
-    //     const predefinedConfigurations = typeConfigurationValues[type];
-
-    //     if (!predefinedConfigurations) return null;
-
-    //     const searchSources = [
-    //         ...(product.marketing_copy?.features?.feature || []),
-    //         product.marketing_copy?.short_description || '',
-    //         product.marketing_copy?.medium_description || '',
-    //         product.marketing_copy?.paragraph_description || '',
-    //     ].join(' ').toLowerCase();
-
-    //     const specPairs = product.marketing_copy?.spec_table_as_key_value_pairs || [];
-
-    //     const specValues = specPairs.flatMap(section =>
-    //         (section.spec_table_pair || []).map(pair => `${pair.key || ''} ${pair.value || ''}`.toLowerCase())
-    //     ).join(' ');
-
-    //     const combinedText = `${searchSources} ${specValues}`;
-
-    //     // Now search through predefined configuration values
-    //     const foundConfig = predefinedConfigurations.find(config =>
-    //         config && combinedText.includes(config.toLowerCase())
-    //     );
-
-    //     return foundConfig || null;
-    // },
-
     // RefrigConfiguration: (product) => {
     //     const description = product.classification?.minor_class_description?.toLowerCase() || "";
     //     const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || "";
     //     const features = (product.marketing_copy?.features?.feature || []).join(" ").toLowerCase();
     //     const minor_code = product.classification?.minor_class_code?.toLowerCase() || "";
 
-    //     if (minor_code.includes("drawer")) return "Drawers";
+
     //     if (description.includes("freestanding")) return "Freestanding";
     //     if (
     //         description.includes("built in") ||
@@ -864,37 +1623,37 @@ export const filterValueExtractors = {
     //     return null;
     // },
 
-    // CoffeeConfiguration: (product) => {
-    //     const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
+    CoffeeConfiguration: (product) => {
+        const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
 
-    //     const image_features = product.marketing_copy?.image_features?.image_feature || [];
-    //     const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
-    //     const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
+        const image_features = product.marketing_copy?.image_features?.image_feature || [];
+        const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
+        const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
 
-    //     const short = product.marketing_copy?.short_description?.toLowerCase() || '';
-    //     const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
-    //     const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
+        const short = product.marketing_copy?.short_description?.toLowerCase() || '';
+        const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+        const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
 
-    //     const hierarchical = (product.marketing_copy?.hierarchical_features_html || '')
-    //         .replace(/<[^>]*>/g, '')
-    //         .toLowerCase();
+        const hierarchical = (product.marketing_copy?.hierarchical_features_html || '')
+            .replace(/<[^>]*>/g, '')
+            .toLowerCase();
 
-    //     const allText = [
-    //         market_features,
-    //         image_titles,
-    //         image_description,
-    //         short,
-    //         medium,
-    //         paragraph,
-    //         hierarchical
-    //     ].join(' ');
+        const allText = [
+            market_features,
+            image_titles,
+            image_description,
+            short,
+            medium,
+            paragraph,
+            hierarchical
+        ].join(' ');
 
-    //     const plumbedInRegex = /\bplumbed(?:[-\s]?in)?\b/;
+        const plumbedInRegex = /\bplumbed(?:[-\s]?in)?\b/;
 
-    //     if (plumbedInRegex.test(allText)) return 'Plumbed';
+        if (plumbedInRegex.test(allText)) return 'Plumbed';
 
-    //     return null;
-    // },
+        return null;
+    },
 
     // LaundryConfiguration: (product) => {
     //     const minor_code = product.classification?.minor_class_code?.toUpperCase() || "";

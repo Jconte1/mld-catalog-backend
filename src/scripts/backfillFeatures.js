@@ -7,16 +7,16 @@ import { filterValueExtractors } from '../utils/filterMapper.js';
 const prisma = new PrismaClient();
 const BATCH_SIZE = 1000;
 
-async function backfillFeaturesForDishwashers() {
+async function backfillFeaturesForLAUNDRY() {
   const total = await prisma.products.count({
-    where: { type: 'DISHWASHERS' },
+    where: { type: 'LAUNDRY' },
   });
 
-  console.log(`🧮 DISHWASHERS products: ${total}\n`);
+  console.log(`🧮 LAUNDRY products: ${total}\n`);
 
   for (let skip = 0; skip < total; skip += BATCH_SIZE) {
     const batch = await prisma.products.findMany({
-      where: { type: 'DISHWASHERS' },
+      where: { type: 'LAUNDRY' },
       skip,
       take: BATCH_SIZE,
     });
@@ -26,7 +26,7 @@ async function backfillFeaturesForDishwashers() {
     for (const product of batch) {
       try {
         const mapped = mapSpecToProduct(product.data);
-        const features = filterValueExtractors.DishWasherFeatures(mapped) || [];
+        const features = filterValueExtractors.LaundryFeatures(mapped) || [];
 
         await prisma.products.update({
           where: { id: product.id },
@@ -40,8 +40,8 @@ async function backfillFeaturesForDishwashers() {
     }
   }
 
-  console.log('\n🎉 All FRIDGE features backfilled.\n');
+  console.log('\n🎉 All LAUNDRY features backfilled.\n');
   await prisma.$disconnect();
 }
 
-backfillFeaturesForDishwashers().catch(console.error);
+backfillFeaturesForLAUNDRY().catch(console.error);

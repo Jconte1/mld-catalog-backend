@@ -10,17 +10,18 @@ datasource db {
 }
 
 model products {
-  id        String   @id @default(uuid())
-  model     String?
-  brand     String?
-  type      String?
-  features  String[]
-  configuration String[]
-  productType String[]
-  width     String?
-  fuelType  String[]
-  major     String?
-  minor     String?
-  data      Json
+  id              String   @id @default(uuid())
+  slug            String?  @unique
+  model           String?
+  brand           String?
+  type            String?
+  features        String[]
+  configuration   String[]
+  productType     String[]
+  width           String?
+  fuelType        String[]
+  major           String?
+  minor           String?
+  data            Json
   created_at DateTime @default(now())
 }

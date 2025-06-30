@@ -27,7 +27,6 @@ router.get('/filter-options', async (req, res) => {
                 features: true,
                 width: true,
                 fuelType: true,
-
             },
         });
 
@@ -38,7 +37,6 @@ router.get('/filter-options', async (req, res) => {
         const widthSet = new Set();
         const fuelTypeSet = new Set();
 
-
         products.forEach((p) => {
             if (p.brand) brandSet.add(p.brand);
             if (Array.isArray(p.productType)) {
@@ -48,7 +46,6 @@ router.get('/filter-options', async (req, res) => {
                     }
                 });
             }
-
             if (Array.isArray(p.configuration)) {
                 p.configuration.forEach((config) => {
                     if (typeof config === 'string' && config.trim() !== '') {
@@ -69,25 +66,15 @@ router.get('/filter-options', async (req, res) => {
                     }
                 });
             }
-
         });
 
         res.json({
-
             Brand: Array.from(brandSet).sort(),
-            ...(productTypeSet.size > 0 && {
-                productType: Array.from(productTypeSet).sort()
-            }),
-            ...(configurationSet.size > 0 && {
-                Configuration: Array.from(configurationSet).sort()
-            }),
+            ...(productTypeSet.size > 0 && { productType: Array.from(productTypeSet).sort() }),
+            ...(configurationSet.size > 0 && { Configuration: Array.from(configurationSet).sort() }),
             Width: Array.from(widthSet).sort(),
-            ...(fuelTypeSet.size > 0 && {
-                FuelType: Array.from(fuelTypeSet).sort(),
-            }),
+            ...(fuelTypeSet.size > 0 && { FuelType: Array.from(fuelTypeSet).sort() }),
             Features: Array.from(featureSet).sort(),
-
-
         });
     } catch (err) {
         console.error('❌ Failed to get filter options:', err);
@@ -95,19 +82,22 @@ router.get('/filter-options', async (req, res) => {
     }
 });
 
+
+// ✅ THIS ROUTE: Fetch by friendly "slug" field instead of "model"
 router.get('/:slug', async (req, res) => {
     const { slug } = req.params;
 
     try {
         const product = await prisma.products.findFirst({
             where: {
-                model: {
+                slug: {
                     equals: slug,
                     mode: 'insensitive',
                 },
             },
             select: {
                 id: true,
+                slug: true,
                 model: true,
                 brand: true,
                 major: true,
@@ -222,6 +212,7 @@ router.get('/', async (req, res) => {
             orderBy: { created_at: 'desc' },
             select: {
                 id: true,
+                slug: true,
                 model: true,
                 brand: true,
                 major: true,
@@ -238,7 +229,7 @@ router.get('/', async (req, res) => {
             totalCount,
         });
     } catch (err) {
-        console.error('❌ Failed to fetch products from DB:', err);
+        console.error('❌ Prisma error in /api/products:', JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
         res.status(500).json({ error: 'Failed to fetch products' });
     }
 });

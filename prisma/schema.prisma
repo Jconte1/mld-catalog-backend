@@ -22,6 +22,7 @@ model products {
   fuelType        String[]
   major           String?
   minor           String?
+  popularity      Int @default(0)
   data            Json
   created_at DateTime @default(now())
 }

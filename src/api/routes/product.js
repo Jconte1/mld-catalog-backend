@@ -121,9 +121,10 @@ router.get('/:slug', async (req, res) => {
 
 
 router.get('/', async (req, res) => {
+    console.log('📥 FULL QUERY OBJECT:', req.query);
     const rawType = req.query.type;
     const type = rawType ? normalize(rawType) : undefined;
-    const { page = 1, limit, filters } = req.query;
+    const { page = 1, limit, filters, sort } = req.query;
 
     console.log('📥 Received filters query param:', filters);
 
@@ -199,8 +200,22 @@ router.get('/', async (req, res) => {
         ...typeClause,
         ...filterClause,
     };
+    console.log('📥 sort param:', sort);
+    let orderBy;
+    if (sort === 'name_asc') {
+        orderBy = { model: 'asc' };
+    } else if (sort === 'name_desc') {
+        orderBy = { model: 'desc' };
+    } else if (sort === 'popular') {
+        orderBy = { popularity: 'desc' };
+    } else {
+        orderBy = { created_at: 'desc' }; 
+    }
+
+   
 
     try {
+        console.log('🟣 Using orderBy:', orderBy);
         // 🧮 Count total matching records
         const totalCount = await prisma.products.count({ where });
 
@@ -209,7 +224,7 @@ router.get('/', async (req, res) => {
             where,
             skip,
             take: parsedLimit,
-            orderBy: { created_at: 'desc' },
+            orderBy,
             select: {
                 id: true,
                 slug: true,

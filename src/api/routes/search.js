@@ -62,12 +62,13 @@ router.get('/', async (req, res) => {
                 major: true,
                 minor: true,
                 type: true,
+                slug: true, // ✅ Include slug from DB
             },
         });
 
         console.log(`✅ Found ${productsRaw.length} matching raw products.`);
 
-        // ✅ Prepare "products" array - no need to filter accessories here anymore
+        // ✅ Prepare "products" array using pre-built slug
         const products = productsRaw
             .slice(0, 5)  // limit to 5 after filtering
             .map((p) => ({
@@ -77,7 +78,7 @@ router.get('/', async (req, res) => {
                 major: p.major,
                 minor: p.minor,
                 type: p.type?.toLowerCase(),
-                slug: p.model?.toLowerCase()
+                slug: p.slug // ✅ Use DB field as-is
             }));
 
         // ✅ Deduplicate and prepare "productTypes" array

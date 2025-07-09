@@ -174,9 +174,9 @@ router.get('/', async (req, res) => {
                 };
             }
 
-            if (parsedFilters.fuelType?.length) {
+            if (parsedFilters.fueltype?.length) {
                 filterClause.fuelType = {
-                    in: parsedFilters.fuelType,
+                    hasSome: parsedFilters.fueltype.map((ft) => ft.trim().toLowerCase()),
                 };
             }
 
@@ -186,9 +186,9 @@ router.get('/', async (req, res) => {
                 };
             }
 
-            if (parsedFilters.productType?.length) {
+            if (parsedFilters.producttype?.length) {
                 filterClause.productType = {
-                    hasSome: parsedFilters.productType.map((c) => c.trim().toLowerCase()),
+                    hasSome: parsedFilters.producttype.map((c) => c.trim().toLowerCase()),
                 };
             }
         } catch (err) {

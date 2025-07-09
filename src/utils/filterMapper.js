@@ -403,28 +403,28 @@ export const filterValueExtractors = {
     // },
 
     // CoffeeFeatures: (product) => {
-    //     const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
-    //     const image_features = product.marketing_copy?.image_features?.image_feature || [];
-    //     const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
-    //     const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
-    //     const short = product.marketing_copy?.short_description?.toLowerCase() || '';
-    //     const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
-    //     const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
-    //     const hierarchical = (product.marketing_copy?.hierarchical_features_html || '')
-    //         .replace(/<[^>]*>/g, '')
-    //         .toLowerCase();
+        // const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
+        // const image_features = product.marketing_copy?.image_features?.image_feature || [];
+        // const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
+        // const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
+        // const short = product.marketing_copy?.short_description?.toLowerCase() || '';
+        // const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+        // const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
+        // const hierarchical = (product.marketing_copy?.hierarchical_features_html || '')
+        //     .replace(/<[^>]*>/g, '')
+        //     .toLowerCase();
 
-    //     const allText = [
-    //         market_features,
-    //         image_titles,
-    //         image_description,
-    //         short,
-    //         medium,
-    //         paragraph,
-    //         hierarchical
-    //     ].join(' ');
+        // const allText = [
+        //     market_features,
+        //     image_titles,
+        //     image_description,
+        //     short,
+        //     medium,
+        //     paragraph,
+        //     hierarchical
+        // ].join(' ');
 
-    //     const features = [];
+        // const features = [];
 
     //     const keywordMap = {
     //         "programmable": /\bprogrammable\b|\bprogram\s+(settings|control|options)\b/i,
@@ -446,80 +446,153 @@ export const filterValueExtractors = {
     //     return features.length > 0 ? features : null;
     // },
 
-    LaundryFeatures: (product) => {
-        const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
-        const image_features = product.marketing_copy?.image_features?.image_feature || [];
-        const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
-        const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
-        const short = product.marketing_copy?.short_description?.toLowerCase() || '';
-        const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
-        const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
-        const hierarchical = (product.marketing_copy?.hierarchical_features_html || '').replace(/<[^>]*>/g, '').toLowerCase();
+    // LaundryFeatures: (product) => {
+    //     const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
+    //     const image_features = product.marketing_copy?.image_features?.image_feature || [];
+    //     const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
+    //     const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
+    //     const short = product.marketing_copy?.short_description?.toLowerCase() || '';
+    //     const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+    //     const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
+    //     const hierarchical = (product.marketing_copy?.hierarchical_features_html || '').replace(/<[^>]*>/g, '').toLowerCase();
       
-        const allText = [
+    //     const allText = [
+    //       market_features,
+    //       image_titles,
+    //       image_description,
+    //       short,
+    //       medium,
+    //       paragraph,
+    //       hierarchical,
+    //     ].join(' ');
+      
+    //     const features = [];
+      
+    //     const featureRegexMap = {
+    //       "top loading": [/\btop[-\s]?loading\b/],
+    //       "energy star": [/\benergy\s*star\b/],
+    //       "title 20 compliant": [/\btitle\s*20\s*compliant\b/],
+    //       "front loading": [/\bfront[-\s]?loading\b/],
+    //       "stackable": [/\bstackable\b/],
+    //       "smart home": [/\bsmart\s*home\b/, /\bsmart\s*enabled\b/],
+    //       "made in america": [/\bmade\s*in\s*america\b/, /\bamerican[-\s]?made\b/],
+    //       "sanitary rinse": [
+    //         /\bsani(tary)?[-\s]?rinse\b/,
+    //         /\bsanitize[-\s]?rinse\b/,
+    //         /\bsanitary\s*cycle\b/,
+    //         /\brinse\b.*\bsanitize\b/
+    //       ],
+    //       "agitator": [/\bagitator\b/],
+    //       "steam technology": [
+    //         /\bsteam\s*technology\b/,
+    //         /\bsteam[-\s]?assist\b/,
+    //         /\bsteam\s*clean(ing)?\b/
+    //       ],
+    //       "impeller": [/\bimpeller\b/],
+    //       "ada": [/\bADA\b/, /\bADA\s*(compliant|certified)?\b/],
+    //       "interior light": [/\binterior\s*light\b/, /\blight\s*(included)?\b/],
+    //       "approved for commercial use": [
+    //         /\bapproved\s*for\s*commercial\s*use\b/,
+    //         /\bcommercial[-\s]*grade\b/
+    //       ],
+    //       "pedestal included": [/\bpedestal\s*included\b/],
+    //       "pet friendly": [/\bpet\s*friendly\b/],
+    //       "eco friendly": [/\beco[-\s]*friendly\b/],
+    //       "fingerprint resistant": [/\bfingerprint\s*resistant\b/],
+    //       "humidity sensing": [/\bhumidity\s*sensing\b/, /\bmoisture\s*(sensing|sensor)\b/],
+    //       "rebate offered": [/\brebate\s*(available|offered)?\b/],
+    //       "end of cycle indicator": [
+    //         /\bend\s*of\s*cycle\s*indicator\b/,
+    //         /\bcycle\s*end\s*(alert|chime|signal)\b/
+    //       ],
+    //       "sensor dry": [/\bsensor\s*dry\b/, /\bauto\s*dry\b/],
+    //       "lp conversion": [/\bLP\s*conversion\b/, /\bconvertible\s*to\s*LP\b/],
+    //       "vent free": [/\bvent[-\s]?free\b/],
+    //       "quick ship": [/\bquick\s*ship(ping)?\b/],
+    //       "light included": [/\blight\s*included\b/],
+    //     };
+      
+    //     for (const [label, regexes] of Object.entries(featureRegexMap)) {
+    //       if (regexes.some((regex) => regex.test(allText))) {
+    //         features.push(label);
+    //       }
+    //     }
+      
+    //     return features.length ? features : null;
+    //   },
+
+    HoodFeatures: (product) => {
+      const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
+      const image_features = product.marketing_copy?.image_features?.image_feature || [];
+      const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
+      const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
+      const short = product.marketing_copy?.short_description?.toLowerCase() || '';
+      const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+      const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
+      const hierarchical = (product.marketing_copy?.hierarchical_features_html || '')
+          .replace(/<[^>]*>/g, '')
+          .toLowerCase();
+
+      const allText = [
           market_features,
           image_titles,
           image_description,
           short,
           medium,
           paragraph,
-          hierarchical,
-        ].join(' ');
-      
-        const features = [];
-      
-        const featureRegexMap = {
-          "top loading": [/\btop[-\s]?loading\b/],
-          "energy star": [/\benergy\s*star\b/],
-          "title 20 compliant": [/\btitle\s*20\s*compliant\b/],
-          "front loading": [/\bfront[-\s]?loading\b/],
-          "stackable": [/\bstackable\b/],
-          "smart home": [/\bsmart\s*home\b/, /\bsmart\s*enabled\b/],
-          "made in america": [/\bmade\s*in\s*america\b/, /\bamerican[-\s]?made\b/],
-          "sanitary rinse": [
-            /\bsani(tary)?[-\s]?rinse\b/,
-            /\bsanitize[-\s]?rinse\b/,
-            /\bsanitary\s*cycle\b/,
-            /\brinse\b.*\bsanitize\b/
-          ],
-          "agitator": [/\bagitator\b/],
-          "steam technology": [
-            /\bsteam\s*technology\b/,
-            /\bsteam[-\s]?assist\b/,
-            /\bsteam\s*clean(ing)?\b/
-          ],
-          "impeller": [/\bimpeller\b/],
-          "ada": [/\bADA\b/, /\bADA\s*(compliant|certified)?\b/],
-          "interior light": [/\binterior\s*light\b/, /\blight\s*(included)?\b/],
-          "approved for commercial use": [
-            /\bapproved\s*for\s*commercial\s*use\b/,
-            /\bcommercial[-\s]*grade\b/
-          ],
-          "pedestal included": [/\bpedestal\s*included\b/],
-          "pet friendly": [/\bpet\s*friendly\b/],
-          "eco friendly": [/\beco[-\s]*friendly\b/],
-          "fingerprint resistant": [/\bfingerprint\s*resistant\b/],
-          "humidity sensing": [/\bhumidity\s*sensing\b/, /\bmoisture\s*(sensing|sensor)\b/],
-          "rebate offered": [/\brebate\s*(available|offered)?\b/],
-          "end of cycle indicator": [
-            /\bend\s*of\s*cycle\s*indicator\b/,
-            /\bcycle\s*end\s*(alert|chime|signal)\b/
-          ],
-          "sensor dry": [/\bsensor\s*dry\b/, /\bauto\s*dry\b/],
-          "lp conversion": [/\bLP\s*conversion\b/, /\bconvertible\s*to\s*LP\b/],
-          "vent free": [/\bvent[-\s]?free\b/],
-          "quick ship": [/\bquick\s*ship(ping)?\b/],
-          "light included": [/\blight\s*included\b/],
-        };
-      
-        for (const [label, regexes] of Object.entries(featureRegexMap)) {
-          if (regexes.some((regex) => regex.test(allText))) {
-            features.push(label);
-          }
-        }
-      
-        return features.length ? features : null;
-      },
+          hierarchical
+      ].join(' ');
+
+      const features = [];
+    },
+    IceFeatures: (product) => {
+      const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
+      const image_features = product.marketing_copy?.image_features?.image_feature || [];
+      const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
+      const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
+      const short = product.marketing_copy?.short_description?.toLowerCase() || '';
+      const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+      const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
+      const hierarchical = (product.marketing_copy?.hierarchical_features_html || '')
+          .replace(/<[^>]*>/g, '')
+          .toLowerCase();
+
+      const allText = [
+          market_features,
+          image_titles,
+          image_description,
+          short,
+          medium,
+          paragraph,
+          hierarchical
+      ].join(' ');
+
+      const features = [];
+    },
+    WarmingDrawerFeatures: (product) => {
+      const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
+      const image_features = product.marketing_copy?.image_features?.image_feature || [];
+      const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
+      const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
+      const short = product.marketing_copy?.short_description?.toLowerCase() || '';
+      const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+      const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
+      const hierarchical = (product.marketing_copy?.hierarchical_features_html || '')
+          .replace(/<[^>]*>/g, '')
+          .toLowerCase();
+
+      const allText = [
+          market_features,
+          image_titles,
+          image_description,
+          short,
+          medium,
+          paragraph,
+          hierarchical
+      ].join(' ');
+
+      const features = [];
+    },
       
 
 

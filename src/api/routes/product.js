@@ -209,7 +209,7 @@ router.get('/', async (req, res) => {
     } else if (sort === 'popular') {
         orderBy = { popularity: 'desc' };
     } else {
-        orderBy = { created_at: 'desc' }; 
+        orderBy = { created_at: 'desc' };
     }
 
     try {
@@ -218,7 +218,7 @@ router.get('/', async (req, res) => {
         const totalCount = await prisma.products.count({ where });
 
         // 🧲 Fetch paginated results
-        let products = await prisma.products.findMany({
+        const products = await prisma.products.findMany({
             where,
             skip,
             take: parsedLimit,
@@ -226,6 +226,7 @@ router.get('/', async (req, res) => {
             select: {
                 id: true,
                 slug: true,
+                category: true,
                 type: true,
                 model: true,
                 brand: true,
@@ -236,12 +237,6 @@ router.get('/', async (req, res) => {
                 data: true,
             },
         });
-
-        // ✅ Hardcode category = 'appliances'
-        products = products.map((p) => ({
-            ...p,
-            category: 'appliances',
-        }));
 
         // 📦 Return both products and count
         res.json({

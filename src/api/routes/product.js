@@ -212,15 +212,13 @@ router.get('/', async (req, res) => {
         orderBy = { created_at: 'desc' }; 
     }
 
-   
-
     try {
         console.log('🟣 Using orderBy:', orderBy);
         // 🧮 Count total matching records
         const totalCount = await prisma.products.count({ where });
 
         // 🧲 Fetch paginated results
-        const products = await prisma.products.findMany({
+        let products = await prisma.products.findMany({
             where,
             skip,
             take: parsedLimit,
@@ -228,6 +226,7 @@ router.get('/', async (req, res) => {
             select: {
                 id: true,
                 slug: true,
+                type: true,
                 model: true,
                 brand: true,
                 major: true,
@@ -237,6 +236,12 @@ router.get('/', async (req, res) => {
                 data: true,
             },
         });
+
+        // ✅ Hardcode category = 'appliances'
+        products = products.map((p) => ({
+            ...p,
+            category: 'appliances',
+        }));
 
         // 📦 Return both products and count
         res.json({

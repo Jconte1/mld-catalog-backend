@@ -15,6 +15,7 @@ model products {
   model           String?
   brand           String?
   type            String?
+  category        String?
   features        String[]
   configuration   String[]
   productType     String[]

@@ -521,19 +521,19 @@ export const filterValueExtractors = {
     //     return features.length ? features : null;
     //   },
 
-    HoodFeatures: (product) => {
-      const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
-      const image_features = product.marketing_copy?.image_features?.image_feature || [];
-      const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
-      const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
-      const short = product.marketing_copy?.short_description?.toLowerCase() || '';
-      const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
-      const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
-      const hierarchical = (product.marketing_copy?.hierarchical_features_html || '')
-          .replace(/<[^>]*>/g, '')
-          .toLowerCase();
-
-      const allText = [
+      HoodFeatures: (product) => {
+        const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
+        const image_features = product.marketing_copy?.image_features?.image_feature || [];
+        const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
+        const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
+        const short = product.marketing_copy?.short_description?.toLowerCase() || '';
+        const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+        const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
+        const hierarchical = (product.marketing_copy?.hierarchical_features_html || '')
+            .replace(/<[^>]*>/g, '')
+            .toLowerCase();
+      
+        const allText = [
           market_features,
           image_titles,
           image_description,
@@ -541,23 +541,138 @@ export const filterValueExtractors = {
           medium,
           paragraph,
           hierarchical
-      ].join(' ');
-
-      const features = [];
-    },
-    IceFeatures: (product) => {
-      const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
-      const image_features = product.marketing_copy?.image_features?.image_feature || [];
-      const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
-      const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
-      const short = product.marketing_copy?.short_description?.toLowerCase() || '';
-      const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
-      const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
-      const hierarchical = (product.marketing_copy?.hierarchical_features_html || '')
-          .replace(/<[^>]*>/g, '')
-          .toLowerCase();
-
-      const allText = [
+        ].join(' ');
+      
+        const features = [];
+      
+        const featureRegexMap = {
+          "light included": [
+            /\blight\s*included\b/,
+            /\bincludes\s*light\b/,
+            /\bbulb\s*included\b/
+          ],
+          "convertible to ductless / recirculating": [
+            /\bconvertible\b/,
+            /\bductless\b/,
+            /\brecirculating\b/
+          ],
+          "made in america": [
+            /\bmade\s*in\s*america\b/,
+            /\bamerican[-\s]?made\b/
+          ],
+          "title 20 compliant": [
+            /\btitle\s*20\b/
+          ],
+          "ada": [
+            /\bada\b/,
+            /\bada\s*(compliant|certified)?\b/
+          ],
+          "available without blower": [
+            /\bwithout\s*blower\b/,
+            /\bno\s*blower\b/
+          ],
+          "outdoor approved": [
+            /\boutdoor\b/,
+            /\bapproved\s*for\s*outdoor\b/
+          ],
+          "title 24": [
+            /\btitle\s*24\b/
+          ],
+          "ductless": [
+            /\bductless\b/,
+            /\brecirculating\b/
+          ],
+          "includes remote": [
+            /\bincludes\s*remote\b/,
+            /\bremote\s*control\b/
+          ],
+          "led": [
+            /\bled\b/
+          ],
+          "smart home": [
+            /\bsmart\s*home\b/,
+            /\bsmart\s*enabled\b/
+          ],
+          "rebate offered": [
+            /\brebate\b/
+          ],
+          "fingerprint resistant": [
+            /\bfingerprint\s*resistant\b/
+          ],
+          "energy star": [
+            /\benergy\s*star\b/
+          ],
+          "night light": [
+            /\bnight\s*light\b/
+          ],
+          "quick ship": [
+            /\bquick\s*ship\b/,
+            /\bquick\s*shipping\b/
+          ],
+          "panel ready": [
+            /\bpanel\s*ready\b/
+          ],
+          "hood fan": [
+            /\bhood\s*fan\b/,
+            /\bfan\s*included\b/
+          ],
+          "includes timer": [
+            /\bincludes\s*timer\b/,
+            /\btimer\b/
+          ],
+          "approved for commercial use": [
+            /\bapproved\s*for\s*commercial\s*use\b/,
+            /\bcommercial[-\s]*grade\b/
+          ],
+          "eco friendly": [
+            /\beco[-\s]*friendly\b/,
+            /\benvironmentally\s*friendly\b/
+          ],
+          "stainless steel interior": [
+            /\bstainless\s*steel\s*interior\b/
+          ],
+          "blower": [
+            /\bblower\b/
+          ],
+          "heat sensing": [
+            /\bheat\s*sensing\b/,
+            /\bheat\s*sensor\b/
+          ],
+          "replaceable led module": [
+            /\breplaceable\s*led\b/,
+            /\bled\s*module\b/
+          ],
+          "adjustable depth": [
+            /\badjustable\s*depth\b/
+          ],
+          "humidity sensing": [
+            /\bhumidity\s*sensing\b/,
+            /\bmoisture\s*sensor\b/
+          ]
+        };
+      
+        for (const [label, regexes] of Object.entries(featureRegexMap)) {
+          if (regexes.some((regex) => regex.test(allText))) {
+            features.push(label);
+          }
+        }
+      
+        return features.length ? features : null;
+      },
+      
+      IceFeatures: (product) => {
+        const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
+        const image_features = product.marketing_copy?.image_features?.image_feature || [];
+        const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
+        const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
+        const short = product.marketing_copy?.short_description?.toLowerCase() || '';
+        const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+        const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
+        const hierarchical = (product.marketing_copy?.hierarchical_features_html || '')
+            .replace(/<[^>]*>/g, '')
+            .toLowerCase();
+      
+        const allText = [
           market_features,
           image_titles,
           image_description,
@@ -565,23 +680,126 @@ export const filterValueExtractors = {
           medium,
           paragraph,
           hierarchical
-      ].join(' ');
-
-      const features = [];
-    },
-    WarmingDrawerFeatures: (product) => {
-      const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
-      const image_features = product.marketing_copy?.image_features?.image_feature || [];
-      const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
-      const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
-      const short = product.marketing_copy?.short_description?.toLowerCase() || '';
-      const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
-      const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
-      const hierarchical = (product.marketing_copy?.hierarchical_features_html || '')
-          .replace(/<[^>]*>/g, '')
-          .toLowerCase();
-
-      const allText = [
+        ].join(' ');
+      
+        const features = [];
+      
+        const featureRegexMap = {
+          "counter depth": [
+            /\bcounter[-\s]?depth\b/
+          ],
+          "clear ice": [
+            /\bclear[-\s]?ice\b/
+          ],
+          "drain required": [
+            /\bdrain\s*required\b/,
+            /\brequires\s*drain\b/
+          ],
+          "made in america": [
+            /\bmade\s*in\s*america\b/,
+            /\bamerican[-\s]?made\b/
+          ],
+          "outdoor approved": [
+            /\boutdoor\b/,
+            /\bapproved\s*for\s*outdoor\b/
+          ],
+          "pump included": [
+            /\bpump\s*included\b/,
+            /\bincludes\s*pump\b/
+          ],
+          "light included": [
+            /\blight\s*included\b/,
+            /\bincludes\s*light\b/
+          ],
+          "panel ready": [
+            /\bpanel\s*ready\b/
+          ],
+          "ice bin included": [
+            /\bice\s*bin\s*included\b/,
+            /\bincludes\s*ice\s*bin\b/
+          ],
+          "includes scoop": [
+            /\bincludes\s*scoop\b/,
+            /\bscoop\s*included\b/
+          ],
+          "leveling legs": [
+            /\bleveling\s*legs\b/,
+            /\badjustable\s*legs\b/
+          ],
+          "ada": [
+            /\bada\b/,
+            /\bada\s*(compliant|certified)?\b/
+          ],
+          "energy star": [
+            /\benergy\s*star\b/
+          ],
+          "approved for commercial use": [
+            /\bapproved\s*for\s*commercial\s*use\b/,
+            /\bcommercial[-\s]?grade\b/
+          ],
+          "sabbath mode": [
+            /\bsabbath\s*mode\b/
+          ],
+          "ice maker": [
+            /\bice\s*maker\b/
+          ],
+          "interior light": [
+            /\binterior\s*light\b/,
+            /\blight\s*inside\b/
+          ],
+          "quick ship": [
+            /\bquick\s*ship\b/,
+            /\bquick\s*shipping\b/
+          ],
+          "rebate offered": [
+            /\brebate\b/
+          ],
+          "ce listed": [
+            /\bce\s*listed\b/,
+            /\bce\s*certified\b/
+          ],
+          "forced air system": [
+            /\bforced\s*air\s*system\b/,
+            /\bforced\s*air\b/
+          ],
+          "self-contained": [
+            /\bself[-\s]?contained\b/
+          ],
+          "antimicrobial": [
+            /\bantimicrobial\b/
+          ],
+          "automatic defrost": [
+            /\bautomatic\s*defrost\b/,
+            /\bauto\s*defrost\b/
+          ],
+          "tower included": [
+            /\btower\s*included\b/,
+            /\bincludes\s*tower\b/
+          ]
+        };
+      
+        for (const [label, regexes] of Object.entries(featureRegexMap)) {
+          if (regexes.some((regex) => regex.test(allText))) {
+            features.push(label);
+          }
+        }
+      
+        return features.length ? features : null;
+      },
+      
+      WarmingDrawerFeatures: (product) => {
+        const market_features = product.marketing_copy?.features?.feature?.join(' ').toLowerCase() || '';
+        const image_features = product.marketing_copy?.image_features?.image_feature || [];
+        const image_titles = image_features.map(f => f?.title?.toLowerCase() || '').join(' ');
+        const image_description = image_features.map(f => f?.feature_description?.toLowerCase() || '').join(' ');
+        const short = product.marketing_copy?.short_description?.toLowerCase() || '';
+        const medium = product.marketing_copy?.medium_description?.toLowerCase() || '';
+        const paragraph = product.marketing_copy?.paragraph_description?.toLowerCase() || '';
+        const hierarchical = (product.marketing_copy?.hierarchical_features_html || '')
+            .replace(/<[^>]*>/g, '')
+            .toLowerCase();
+      
+        const allText = [
           market_features,
           image_titles,
           image_description,
@@ -589,10 +807,59 @@ export const filterValueExtractors = {
           medium,
           paragraph,
           hierarchical
-      ].join(' ');
-
-      const features = [];
-    },
+        ].join(' ');
+      
+        const features = [];
+      
+        const featureRegexMap = {
+          "even heat": [
+            /\bdistributes\s*heat\s*evenly\b/,
+            /\beven\s*heat\b/,
+            /\buniform\s*heat\b/
+          ],
+          "corrosion resistant": [
+            /\bcorrosion\s*resistant\b/,
+            /\bresists\s*corrosion\b/,
+            /\bstainless[-\s]?steel.*(panel|construction)?\b/
+          ],
+          "food presets": [
+            /\bfood\s*presets\b/,
+            /\bpreset.*food\b/,
+            /\bbread\b/,
+            /\bpizza\b/,
+            /\bcereal\b/
+          ],
+          "towel warming": [
+            /\bwarming\s*towels\b/,
+            /\btowel\s*warming\b/,
+            /\bwarm.*towel\b/
+          ],
+          "large capacity": [
+            /\blarge\s*capacity\b/,
+            /\bgenerous.*drawer\b/,
+            /\b30[-\s]?inch\b/
+          ],
+          "hidden controls": [
+            /\bhidden\s*controls\b/,
+            /\bconcealed\s*controls\b/,
+            /\belectronic\s*controls\b/
+          ],
+          "auto shut-off": [
+            /\bautomatic\s*shut[-\s]?off\b/,
+            /\bauto\s*shut[-\s]?off\b/,
+            /\bshut[-\s]?off\s*feature\b/
+          ]
+        };
+      
+        for (const [label, regexes] of Object.entries(featureRegexMap)) {
+          if (regexes.some((regex) => regex.test(allText))) {
+            features.push(label);
+          }
+        }
+      
+        return features.length ? features : null;
+      },
+      
       
 
 

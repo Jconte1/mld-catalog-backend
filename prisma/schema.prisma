@@ -1,5 +1,3 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,20 +8,38 @@ datasource db {
 }
 
 model products {
-  id              String   @id @default(uuid())
-  slug            String?  @unique
-  model           String?
-  brand           String?
-  type            String?
-  category        String?
-  features        String[]
-  configuration   String[]
-  productType     String[]
-  width           String?
-  fuelType        String[]
-  major           String?
-  minor           String?
-  popularity      Int @default(0)
-  data            Json
-  created_at DateTime @default(now())
+  id            String   @id @default(uuid())
+  model         String?
+  major         String?
+  minor         String?
+  brand         String?
+  data          Json
+  created_at    DateTime @default(now())
+  type          String?
+  features      String[]
+  width         String?
+  fuelType      String[]
+  configuration String[]
+  productType   String[]
+  slug          String?  @unique
+  popularity    Int      @default(0)
+  category      String?
+
+  closeout_inventory closeout_inventory[]
+}
+
+model closeout_inventory {
+  id            String   @id @default(uuid())
+  productId     String
+  product       products @relation(fields: [productId], references: [id])
+  modelNumber   String
+  acumaticaSku  String
+  price         Decimal?
+  quantity      Int @default(0)
+  
+  lastSyncedAt  DateTime @default(now())
+
+  @@index([productId])
+  @@index([modelNumber])
+  @@unique([acumaticaSku])
 }

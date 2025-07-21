@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
 function sendErrorEmail(subject, message) {
   return transporter.sendMail({
     from: `"Closeout API Error" <${process.env.AUTO_EMAIL}>`,
-    to: process.env.USER_EMAIL,
+    to: process.env.END_USER_EMAIL,
     cc: process.env.CC_EMAIL, 
     subject,
     text: message

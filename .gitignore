@@ -6,3 +6,6 @@ node_modules/
 # Ignore all script utilities
 /src/scripts/
 /src/utils/INDY1_MOUTAIN_LAND_DESIGN_SITE_SPECS.XML
+
+#prisma 
+

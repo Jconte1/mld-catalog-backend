@@ -2,6 +2,16 @@ import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import nodemailer from 'nodemailer';
 
+//TODO:
+// (1). CREATE ARRAY OF ALL BINS. IF A BIN (IE: SOLD) COMES UP WE -
+// IGNORE THAT BIN AND ITS INVENTORY
+// OR WE COULD MAKE ARRAY OF ALL BINS WE SHOULD IGNORE AND REVERSE THE LOGIC
+// (2) RENDER TO FRONTEND 
+// (3) LOGIN LOGIC (CUSTOMER MUST BE LOGGED IN)
+// (4) CART / ORDER SUMMARY 
+// (5) CHECKOUT PAGE(S)
+// (6) POST CHECKOUT / THANK YOU SCREEN 
+
 const prisma = new PrismaClient();
 const router = express.Router();
 
@@ -49,7 +59,10 @@ router.post('/create', async (req, res) => {
       return res.status(400).json({ error: "Invalid acumaticaSku format. Expected at least 3 parts." });
     }
 
-    const modelNumber = parts[1];
+    // NORMALIZE MODEL NUMBER (strip dashes, slashes, spaces)
+    const modelNumberRaw = parts[1];
+    const modelNumber = modelNumberRaw.replace(/[-\/\s]/g, '');
+
     const defaultPriceRaw = insertedItem.DefaultPrice;
     const defaultPrice = typeof defaultPriceRaw === 'number' ? defaultPriceRaw : null;
 

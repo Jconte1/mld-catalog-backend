@@ -4,7 +4,8 @@ import productRoutes from './api/routes/product.js';
 import searchRouter from './api/routes/search.js';
 import closeoutRouter from './api/routes/closeout/create.js'
 import inventoryRouter from './api/routes/closeout/inventory.js'
-
+import { auth } from '../lib/auth.ts';
+import { toExpressHandler } from 'better-auth/express';
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -18,6 +19,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+app.use('/api/auth', toExpressHandler(auth));
 
 app.use('/api/products', productRoutes);
 app.use('/api/search', searchRouter);

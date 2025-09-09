@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
       skip,
       take: limit,
       where: type
-        ? { product: { type: { equals: type } } } // ✅ filter on related table
+        ? { product: { type: { equals: type } }, quantity: { gt: 0 }  } // ✅ filter on related table
         : {},
       include: {
         product: {

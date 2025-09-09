@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import productRoutes from './api/routes/product.js';
+import 'dotenv/config';
+import productRoutes from './api/routes/products/index.js';
 import searchRouter from './api/routes/search.js';
 import closeoutRouter from './api/routes/closeout/create.js'
 import inventoryRouter from './api/routes/closeout/inventory.js'

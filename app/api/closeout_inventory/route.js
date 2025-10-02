@@ -1,5 +1,5 @@
 // app/api/closeout_inventory/route.js
-import prisma from '@/lib/prisma';
+import prisma from "../../../lib/prisma";
 
 function corsHeaders() {
   return {

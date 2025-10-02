@@ -1,5 +1,5 @@
-import prisma from '../../../lib/prisma';
-import mapSpecToProduct from '../../../src/utils/productMapper';
+import prisma from '../../../../lib/prisma';
+import mapSpecToProduct from '../../../../src/utils/productMapper';
 
 function corsHeaders() {
   return {

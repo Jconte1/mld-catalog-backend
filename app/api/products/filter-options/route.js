@@ -1,5 +1,5 @@
-import prisma from '../../../lib/prisma';
-import normalize from '../../../src/utils/normalize';
+import prisma from '../../../../lib/prisma';
+import normalize from '../../../../src/utils/normalize';
 
 function corsHeaders() {
   return {

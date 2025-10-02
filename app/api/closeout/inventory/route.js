@@ -1,5 +1,5 @@
 // app/api/closeout/inventory/route.js
-import prisma from '@/lib/prisma';
+import prisma from '../../../../lib/prisma';
 import nodemailer from 'nodemailer';
 
 function corsHeaders() {

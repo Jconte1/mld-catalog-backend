@@ -1,7 +1,7 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
-import mapSpecToProduct from '../../utils/productMapper.js';
-import normalize from '../../utils/normalize.js';
+import mapSpecToProduct from '../../src/utils/productMapper.js';
+import normalize from '../../src/utils/normalize.js';
 
 const router = express.Router();
 

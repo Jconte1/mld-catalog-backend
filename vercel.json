@@ -1,0 +1,12 @@
+{
+  "functions": {
+    "api/index.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
+  "installCommand": "npm ci",
+  "buildCommand": "",
+  "env": {
+    "NODE_ENV": "production"
+  }
+}

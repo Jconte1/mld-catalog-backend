@@ -8,38 +8,126 @@ datasource db {
 }
 
 model products {
-  id            String   @id @default(uuid())
-  model         String?
-  major         String?
-  minor         String?
-  brand         String?
-  data          Json
-  created_at    DateTime @default(now())
-  type          String?
-  features      String[]
-  width         String?
-  fuelType      String[]
-  configuration String[]
-  productType   String[]
-  slug          String?  @unique
-  popularity    Int      @default(0)
-  category      String?
-
+  id                 String               @id @default(uuid())
+  model              String?
+  major              String?
+  minor              String?
+  brand              String?
+  data               Json
+  created_at         DateTime             @default(now())
+  type               String?
+  features           String[]
+  width              String?
+  fuelType           String[]
+  configuration      String[]
+  productType        String[]
+  slug               String?              @unique
+  popularity         Int                  @default(0)
+  category           String?
   closeout_inventory closeout_inventory[]
 }
 
 model closeout_inventory {
-  id            String   @id @default(uuid())
-  productId     String
-  product       products @relation(fields: [productId], references: [id])
-  modelNumber   String
-  acumaticaSku  String
-  price         Decimal?
-  quantity      Int @default(0)
-  
-  lastSyncedAt  DateTime @default(now())
+  id           String   @id @default(uuid())
+  productId    String
+  modelNumber  String
+  acumaticaSku String   @unique
+  price        Decimal?
+  quantity     Int      @default(0)
+  lastSyncedAt DateTime @default(now())
+  product      products @relation(fields: [productId], references: [id])
 
   @@index([productId])
   @@index([modelNumber])
-  @@unique([acumaticaSku])
+}
+
+model accounts {
+  id                    String    @id
+  createdAt             DateTime
+  updatedAt             DateTime
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  userId                String
+  
+  users                 users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model sessions {
+  id             String   @id
+  createdAt      DateTime
+  updatedAt      DateTime
+  expiresAt      DateTime
+  token          String   @unique
+  ipAddress      String?
+  userAgent      String?
+  impersonatedBy String?
+  userId         String
+  
+  users          users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model users {
+  id            String     @id
+  createdAt     DateTime
+  updatedAt     DateTime
+  name          String
+  email         String     @unique
+  emailVerified Boolean
+  image         String?
+  accounts      accounts[]
+  sessions      sessions[]
+  
+  baid          String?   @db.VarChar(64)
+}
+
+model verifications {
+  id         String    @id
+  createdAt  DateTime?
+  updatedAt  DateTime?
+  identifier String
+  value      String
+  expiresAt  DateTime
+}
+
+model erp_order_summaries {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Owner
+  baid         String   @db.VarChar(64)
+
+  // Identity in ERP
+  orderNbr     String   @db.VarChar(64)
+
+  // UI fields
+  locationId   String?  @db.VarChar(64)
+  locationName String?  @db.VarChar(128)
+  status       String   @db.VarChar(48)
+  deliveryDate DateTime?
+
+  // Sync bookkeeping
+  lastSeenAt   DateTime @default(now())
+  isActive     Boolean  @default(true)
+
+  @@unique([baid, orderNbr])
+  @@index([baid, deliveryDate])
+  @@index([baid, isActive, status])
+}
+
+model erp_sync_runs {
+  id         String   @id @default(cuid())
+  baid       String   @db.VarChar(64)
+  startedAt  DateTime @default(now())
+  finishedAt DateTime?
+  ok         Boolean?
+  note       String?
+  @@index([baid, startedAt])
 }

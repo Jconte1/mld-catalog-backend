@@ -1,21 +1,29 @@
-import express from 'express';
-import { PrismaClient } from '@prisma/client';
+// app/api/search/route.js
+import prisma from '@/lib/prisma';
 
-const router = express.Router();
+function corsHeaders() {
+  return {
+    'Access-Control-Allow-Origin': 'https://www.mld.com',
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Vary': 'Origin',
+  };
+}
 
-// Reuse Prisma client across invocations (Vercel/serverless friendly)
-const prisma = globalThis.__prisma__ ?? new PrismaClient();
-if (process.env.NODE_ENV !== 'production') globalThis.__prisma__ = prisma;
+export function OPTIONS() {
+  return new Response(null, { status: 204, headers: corsHeaders() });
+}
 
 /**
- * /api/search
- * Example: /api/search?q=wolf
+ * GET /api/search?q=wolf
  */
-router.get('/', async (req, res) => {
-  const q = req.query.q?.toLowerCase() || '';
+export async function GET(req) {
+  const url = new URL(req.url);
+  const q = (url.searchParams.get('q') || '').toLowerCase();
 
   if (!q || q.trim() === '') {
-    return res.json({ products: [], productTypes: [] });
+    return Response.json({ products: [], productTypes: [] }, { headers: corsHeaders() });
   }
 
   try {
@@ -94,11 +102,9 @@ router.get('/', async (req, res) => {
     }
 
     console.log(`✅ Returning ${products.length} products and ${productTypes.length} productTypes.`);
-    return res.json({ products, productTypes });
+    return Response.json({ products, productTypes }, { headers: corsHeaders() });
   } catch (error) {
     console.error('❌ Search API error:', error);
-    return res.status(500).json({ error: 'Server error. Please try again.' });
+    return Response.json({ error: 'Server error. Please try again.' }, { status: 500, headers: corsHeaders() });
   }
-});
-
-export default router;
+}

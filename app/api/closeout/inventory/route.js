@@ -1,23 +1,34 @@
-import express from 'express';
-import { PrismaClient } from '@prisma/client';
+// app/api/closeout/inventory/route.js
+import prisma from '@/lib/prisma';
 import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
-dotenv.config();
 
-const router = new express.Router();
-const prisma = new PrismaClient();
+function corsHeaders() {
+  return {
+    'Access-Control-Allow-Origin': 'https://www.mld.com',
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    Vary: 'Origin',
+  };
+}
 
-// Email utility
-async function sendFailureEmail(toEmail, failures) {
-  if (!failures.length) return;
+export function OPTIONS() {
+  return new Response(null, { status: 204, headers: corsHeaders() });
+}
 
-  const transporter = nodemailer.createTransport({
+function makeTransporter() {
+  return nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: process.env.AUTO_EMAIL,
-      pass: process.env.AUTO_EMAIL_PASSWORD
-    }
+      pass: process.env.AUTO_EMAIL_PASSWORD,
+    },
   });
+}
+
+async function sendFailureEmail(toEmail, failures) {
+  if (!failures.length) return;
+  const transporter = makeTransporter();
 
   const htmlContent = `
     <h2>Inventory Sync Failures</h2>
@@ -31,13 +42,17 @@ async function sendFailureEmail(toEmail, failures) {
         </tr>
       </thead>
       <tbody>
-        ${failures.map(f => `
+        ${failures
+          .map(
+            (f) => `
           <tr>
             <td>${f.acumaticaSku}</td>
             <td>${f.modelNumber}</td>
             <td>${f.reason}</td>
           </tr>
-        `).join('')}
+        `
+          )
+          .join('')}
       </tbody>
     </table>
   `;
@@ -45,26 +60,26 @@ async function sendFailureEmail(toEmail, failures) {
   await transporter.sendMail({
     from: `"Inventory Sync" <${process.env.AUTO_EMAIL}>`,
     to: toEmail,
-    cc: process.env.CC_EMAIL,   
+    cc: process.env.CC_EMAIL,
     subject: '⚠️ Inventory Sync Failures Detected',
-    html: htmlContent
+    html: htmlContent,
   });
 
   console.log(`✅ Failure email sent to ${toEmail}`);
 }
 
-// Route
-router.post('/inventory', async (req, res) => {
+export async function POST(req) {
   try {
-    if (req.method !== 'POST') {
-      return res.status(405).json({ error: 'Method not Accepted' });
-    }
+    const body = await req.json();
 
-    const inserted = req.body.Inserted || [];
-    const deleted = req.body.Deleted || [];
+    const inserted = body.Inserted || [];
+    const deleted = body.Deleted || [];
 
     if (inserted.length === 0 && deleted.length === 0) {
-      return res.status(400).json({ error: 'No inventory records to process' });
+      return Response.json(
+        { error: 'No inventory records to process' },
+        { status: 400, headers: corsHeaders() }
+      );
     }
 
     const updatedRecords = [];
@@ -72,10 +87,10 @@ router.post('/inventory', async (req, res) => {
 
     if (inserted.length > 0) {
       for (const item of inserted) {
-        const acumaticaSku = item.InventoryID.trim();
-        const parts = acumaticaSku.split(" ");
+        const acumaticaSku = (item.InventoryID || '').trim();
+        const parts = acumaticaSku.split(' ');
         if (parts.length < 3) {
-          console.log(`❌ Invalid acumaticaSku format. Parts:`, parts);
+          console.log('❌ Invalid acumaticaSku format. Parts:', parts);
           continue;
         }
 
@@ -85,13 +100,15 @@ router.post('/inventory', async (req, res) => {
         const defaultPriceRaw = item.DefaultPrice;
         const defaultPrice = typeof defaultPriceRaw === 'number' ? defaultPriceRaw : null;
 
-        console.log(`🔎 Processing Item - acumaticaSku: "${acumaticaSku}", modelNumber: "${modelNumber}", normalizedModelNumber: "${normalizedModelNumber}"`);
+        console.log(
+          `🔎 Processing Item - acumaticaSku: "${acumaticaSku}", modelNumber: "${modelNumber}", normalizedModelNumber: "${normalizedModelNumber}"`
+        );
 
         const existingRecord = await prisma.closeout_inventory.findFirst({
           where: {
             modelNumber: normalizedModelNumber,
-            acumaticaSku: acumaticaSku
-          }
+            acumaticaSku,
+          },
         });
 
         if (existingRecord) {
@@ -101,21 +118,23 @@ router.post('/inventory', async (req, res) => {
               quantity: qtyOnHand,
               lastSyncedAt: new Date(),
               price: defaultPrice,
-            }
+            },
           });
           console.log(`✅ Updated existing closeout_inventory: "${normalizedModelNumber}"`);
           updatedRecords.push({ modelNumber: normalizedModelNumber, acumaticaSku, qtyOnHand, defaultPrice });
         } else {
           const product = await prisma.products.findFirst({
-            where: { model: normalizedModelNumber }
+            where: { model: normalizedModelNumber },
           });
 
           if (!product) {
-            console.log(`❌ Product not found in catalog for normalizedModelNumber: "${normalizedModelNumber}", acumaticaSku: "${acumaticaSku}"`);
+            console.log(
+              `❌ Product not found in catalog for normalizedModelNumber: "${normalizedModelNumber}", acumaticaSku: "${acumaticaSku}"`
+            );
             failures.push({
               acumaticaSku,
               modelNumber: normalizedModelNumber,
-              reason: "Product not found in catalog"
+              reason: 'Product not found in catalog',
             });
             continue;
           }
@@ -124,11 +143,11 @@ router.post('/inventory', async (req, res) => {
             data: {
               productId: product.id,
               modelNumber: normalizedModelNumber,
-              acumaticaSku: acumaticaSku,
+              acumaticaSku,
               quantity: qtyOnHand,
               lastSyncedAt: new Date(),
               price: defaultPrice,
-            }
+            },
           });
           console.log(`✅ Created new closeout_inventory for normalizedModelNumber: "${normalizedModelNumber}"`);
           updatedRecords.push({ modelNumber: normalizedModelNumber, acumaticaSku, qtyOnHand, defaultPrice });
@@ -139,14 +158,19 @@ router.post('/inventory', async (req, res) => {
         await sendFailureEmail(process.env.END_USER_EMAIL, failures);
       }
 
-      return res.status(200).json({ success: true, updatedRecords, failures });
-    } 
-    else if (deleted.length > 0) {
+      return Response.json(
+        { success: true, updatedRecords, failures },
+        { headers: corsHeaders() }
+      );
+    }
+
+    // DELETE events
+    if (deleted.length > 0) {
       for (const item of deleted) {
-        const acumaticaSku = item.InventoryID.trim();
-        const parts = acumaticaSku.split(" ");
+        const acumaticaSku = (item.InventoryID || '').trim();
+        const parts = acumaticaSku.split(' ');
         if (parts.length < 3) {
-          console.log(`❌ Invalid acumaticaSku format. Parts:`, parts);
+          console.log('❌ Invalid acumaticaSku format. Parts:', parts);
           continue;
         }
 
@@ -156,13 +180,15 @@ router.post('/inventory', async (req, res) => {
         const defaultPriceRaw = item.DefaultPrice;
         const defaultPrice = typeof defaultPriceRaw === 'number' ? defaultPriceRaw : null;
 
-        console.log(`🔎 Processing DELETE Item - acumaticaSku: "${acumaticaSku}", modelNumber: "${modelNumber}", normalizedModelNumber: "${normalizedModelNumber}"`);
+        console.log(
+          `🔎 Processing DELETE Item - acumaticaSku: "${acumaticaSku}", modelNumber: "${modelNumber}", normalizedModelNumber: "${normalizedModelNumber}"`
+        );
 
         const existingRecord = await prisma.closeout_inventory.findFirst({
           where: {
             modelNumber: normalizedModelNumber,
-            acumaticaSku: acumaticaSku
-          }
+            acumaticaSku,
+          },
         });
 
         if (existingRecord) {
@@ -175,22 +201,22 @@ router.post('/inventory', async (req, res) => {
               quantity: newQuantity,
               lastSyncedAt: new Date(),
               price: defaultPrice,
-            }
+            },
           });
 
-          console.log(`✅ Updated quantity for existing closeout_inventory: "${normalizedModelNumber}", newQuantity: ${newQuantity}`);
+          console.log(
+            `✅ Updated quantity for existing closeout_inventory: "${normalizedModelNumber}", newQuantity: ${newQuantity}`
+          );
           updatedRecords.push({ modelNumber: normalizedModelNumber, acumaticaSku, newQuantity });
         } else {
           console.warn(`⚠️ No existing closeout_inventory found for acumaticaSku: "${acumaticaSku}"`);
         }
       }
 
-      return res.status(200).json({ success: true, updatedRecords });
+      return Response.json({ success: true, updatedRecords }, { headers: corsHeaders() });
     }
   } catch (error) {
-    console.error('Error in /inventory route:', error);
-    return res.status(500).json({ error: 'Server error' });
+    console.error('Error in /api/closeout/inventory:', error);
+    return Response.json({ error: 'Server error' }, { status: 500, headers: corsHeaders() });
   }
-});
-
-export default router;
+}

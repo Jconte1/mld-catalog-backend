@@ -25,4 +25,4 @@ app.get('/', (_req, res) => {
   res.send('API is running testing testing testing');
 });
 
-export default app; // IMPORTANT: no app.listen here
+export default app; 

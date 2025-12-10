@@ -9,7 +9,7 @@ datasource db {
 
 model products {
   id                 String               @id @default(uuid())
-  model              String?
+  model              String               @unique
   major              String?
   minor              String?
   brand              String?
@@ -35,6 +35,10 @@ model closeout_inventory {
   price        Decimal?
   quantity     Int      @default(0)
   lastSyncedAt DateTime @default(now())
+  newInBox     Boolean  @default(false)
+  bin          String   @default("default")
+  msrp         Decimal  @default(0.0)
+  warehouse    String   @default("SALT LAKE WAREHOUSE")
   product      products @relation(fields: [productId], references: [id])
 
   @@index([productId])
@@ -42,9 +46,9 @@ model closeout_inventory {
 }
 
 model accounts {
-  id                    String    @id
-  createdAt             DateTime
-  updatedAt             DateTime
+  id                    String    @id @default(cuid())
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
   accountId             String
   providerId            String
   accessToken           String?
@@ -55,79 +59,252 @@ model accounts {
   scope                 String?
   password              String?
   userId                String
-  
   users                 users     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model sessions {
-  id             String   @id
-  createdAt      DateTime
-  updatedAt      DateTime
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
   expiresAt      DateTime
   token          String   @unique
   ipAddress      String?
   userAgent      String?
   impersonatedBy String?
   userId         String
-  
   users          users    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model users {
-  id            String     @id
-  createdAt     DateTime
-  updatedAt     DateTime
-  name          String
-  email         String     @unique
-  emailVerified Boolean
-  image         String?
-  accounts      accounts[]
-  sessions      sessions[]
-  
-  baid          String?   @db.VarChar(64)
+  id               String            @id @default(cuid())
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  name             String
+  email            String            @unique
+  emailVerified    Boolean           @default(false)
+  image            String?
+  baid             String?           @db.VarChar(64)
+  accountUserRoles AccountUserRole[]
+  devices          Device[]
+  orderAssignments OrderAssignment[]
+  accounts         accounts[]
+  sessions         sessions[]
 }
 
 model verifications {
-  id         String    @id
-  createdAt  DateTime?
-  updatedAt  DateTime?
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   identifier String
   value      String
   expiresAt  DateTime
+
+  @@index([identifier])
 }
 
-model erp_order_summaries {
-  id           String   @id @default(cuid())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  // Owner
-  baid         String   @db.VarChar(64)
-
-  // Identity in ERP
-  orderNbr     String   @db.VarChar(64)
-
-  // UI fields
-  locationId   String?  @db.VarChar(64)
-  locationName String?  @db.VarChar(128)
-  status       String   @db.VarChar(48)
+model ErpOrderSummary {
+  id           String            @id @default(cuid())
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  baid         String            @db.VarChar(64)
+  orderNbr     String            @db.VarChar(64)
+  locationId   String?           @db.VarChar(64)
+  status       String            @db.VarChar(48)
   deliveryDate DateTime?
+  lastSeenAt   DateTime          @default(now())
+  isActive     Boolean           @default(true)
+  jobName      String?           @db.VarChar(128)
+  shipVia      String?           @db.VarChar(64)
+  customerName String            @default("") @db.VarChar(64)
+  buyerGroup   String?           @default("") @db.VarChar(64)
+  noteId       String?           @default("") @db.VarChar(64)
+  address      ErpOrderAddress?
+  contact      ErpOrderContact?
+  lines        ErpOrderLine[]
+  payment      ErpOrderPayment?
+  jobs         NotificationJob[]
+  assignments  OrderAssignment[]
 
-  // Sync bookkeeping
-  lastSeenAt   DateTime @default(now())
-  isActive     Boolean  @default(true)
-
-  @@unique([baid, orderNbr])
+  @@unique([baid, orderNbr], name: "baid_orderNbr")
   @@index([baid, deliveryDate])
   @@index([baid, isActive, status])
 }
 
-model erp_sync_runs {
-  id         String   @id @default(cuid())
-  baid       String   @db.VarChar(64)
-  startedAt  DateTime @default(now())
+model ErpOrderAddress {
+  id             String          @id @default(cuid())
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  orderSummaryId String          @unique @db.VarChar(64)
+  baid           String          @db.VarChar(64)
+  orderNbr       String          @db.VarChar(64)
+  addressLine1   String?         @db.VarChar(256)
+  addressLine2   String?         @db.VarChar(256)
+  city           String?         @db.VarChar(128)
+  state          String?         @db.VarChar(64)
+  postalCode     String?         @db.VarChar(32)
+  order          ErpOrderSummary @relation(fields: [orderSummaryId], references: [id], onDelete: Cascade)
+
+  @@index([orderSummaryId])
+  @@index([baid, orderNbr])
+}
+
+model ErpOrderContact {
+  id             String          @id @default(cuid())
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  orderSummaryId String          @unique @db.VarChar(64)
+  baid           String          @db.VarChar(64)
+  orderNbr       String          @db.VarChar(64)
+  deliveryEmail  String?         @db.VarChar(256)
+  siteNumber     String?         @db.VarChar(128)
+  osContact      String?         @db.VarChar(256)
+  confirmedVia   String?         @default("") @db.VarChar(256)
+  confirmedWith  String?         @default("") @db.VarChar(256)
+  sixWeekFailed  Boolean?        @default(false)
+  tenDaySent     Boolean?        @default(false)
+  threeDaySent   Boolean?        @default(false)
+  order          ErpOrderSummary @relation(fields: [orderSummaryId], references: [id], onDelete: Cascade)
+
+  @@index([orderSummaryId])
+  @@index([baid, orderNbr])
+}
+
+model ErpOrderPayment {
+  id             String          @id @default(cuid())
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  orderSummaryId String          @unique @db.VarChar(64)
+  baid           String          @db.VarChar(64)
+  orderNbr       String          @db.VarChar(64)
+  orderTotal     Decimal?        @db.Decimal(18, 2)
+  unpaidBalance  Decimal?        @db.Decimal(18, 2)
+  terms          String          @db.VarChar(64)
+  status         String          @default("Active") @db.VarChar(48)
+  order          ErpOrderSummary @relation(fields: [orderSummaryId], references: [id], onDelete: Cascade)
+
+  @@index([orderSummaryId])
+  @@index([baid, orderNbr])
+}
+
+model ErpOrderLine {
+  id              String          @id @default(cuid())
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  orderSummaryId  String          @db.VarChar(64)
+  baid            String          @db.VarChar(64)
+  orderNbr        String          @db.VarChar(64)
+  lineDescription String?         @db.VarChar(512)
+  inventoryId     String?         @db.VarChar(128)
+  lineType        String?         @db.VarChar(64)
+  openQty         Decimal?        @db.Decimal(18, 4)
+  unitPrice       Decimal?        @db.Decimal(18, 2)
+  usrETA          DateTime?
+  here            String?         @db.VarChar(512)
+  warehouse       String?         @db.VarChar(512)
+  order           ErpOrderSummary @relation(fields: [orderSummaryId], references: [id], onDelete: Cascade)
+
+  @@index([orderSummaryId])
+  @@index([baid, orderNbr])
+}
+
+model ErpSyncRun {
+  id         String    @id @default(cuid())
+  baid       String    @db.VarChar(64)
+  startedAt  DateTime  @default(now())
   finishedAt DateTime?
   ok         Boolean?
   note       String?
+
   @@index([baid, startedAt])
+}
+
+model Device {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userId     String
+  platform   String   @db.VarChar(16)
+  pushToken  String   @unique
+  lastSeenAt DateTime @default(now())
+  isActive   Boolean  @default(true)
+  user       users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model OrderAssignment {
+  id             String          @id @default(cuid())
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  orderSummaryId String          @db.VarChar(64)
+  userId         String
+  role           String          @db.VarChar(16)
+  source         String          @db.VarChar(32)
+  isActive       Boolean         @default(true)
+  order          ErpOrderSummary @relation(fields: [orderSummaryId], references: [id], onDelete: Cascade)
+  user           users           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([orderSummaryId, role, isActive])
+  @@index([userId, isActive])
+}
+
+model NotificationJob {
+  id                       String          @id @default(cuid())
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+  orderSummaryId           String
+  phase                    String          @db.VarChar(8)
+  scheduledAt              DateTime
+  status                   String          @db.VarChar(16)
+  attemptCount             Int             @default(0)
+  escalationPostedAt       DateTime?
+  idempotencyKey           String          @unique
+  orderNbr                 String?         @db.VarChar(64)
+  closedAt                 DateTime?
+  lastAttemptAt            DateTime?
+  lastDeliveryDateSnapshot DateTime?
+  order                    ErpOrderSummary @relation(fields: [orderSummaryId], references: [id], onDelete: Cascade)
+
+  @@unique([orderSummaryId, phase], name: "orderSummaryId_phase")
+  @@index([scheduledAt, status])
+  @@index([phase, orderNbr])
+}
+
+model AccountUserRole {
+  id        String      @id @default(cuid())
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  baid      String      @db.VarChar(64)
+  userId    String
+  role      AccountRole
+  isActive  Boolean     @default(true)
+  users     users       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([baid, userId, role, isActive])
+  @@index([baid, role, isActive])
+}
+
+model QuoteRequest {
+  id         String    @id
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime
+  firstName  String
+  lastName   String
+  company    String?
+  email      String
+  phone      String
+  address1   String
+  address2   String?
+  city       String
+  state      String
+  zip        String
+  notes      String?
+  cart       Json
+  status     String    @default("pending")
+  verifiedAt DateTime?
+}
+
+enum AccountRole {
+  ADMIN
+  PM
 }

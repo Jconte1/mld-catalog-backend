@@ -1,4 +1,4 @@
-// File: C:\Users\james\Documents\MLDwebsite\catalogue-backend\app\api\closeout_inventory\route.js
+// File: C:\Users\james\Documents\MLDwebsite\mld-catalog-backend\app\api\closeout_inventory\route.js
 import * as entry from '../../../../../app/api/closeout_inventory/route.js'
 import type { NextRequest } from 'next/server.js'
 

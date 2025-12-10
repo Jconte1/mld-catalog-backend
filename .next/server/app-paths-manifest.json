@@ -1,9 +1,3 @@
 {
-  "/api/closeout_inventory/route": "app/api/closeout_inventory/route.js",
-  "/api/closeout/create/route": "app/api/closeout/create/route.js",
-  "/api/products/filter-options/route": "app/api/products/filter-options/route.js",
-  "/api/products/[slug]/route": "app/api/products/[slug]/route.js",
-  "/api/search/route": "app/api/search/route.js",
-  "/api/products/route": "app/api/products/route.js",
-  "/api/closeout/inventory/route": "app/api/closeout/inventory/route.js"
+  "/api/closeout_inventory/route": "app/api/closeout_inventory/route.js"
 }

@@ -3,7 +3,7 @@ import prisma from "../../../lib/prisma";
 
 function corsHeaders() {
   return {
-    "Access-Control-Allow-Origin": "https://www.mld.com",
+    "Access-Control-Allow-Origin": "https://mld-website-git-closeout-store-jconte1s-projects.vercel.app/",
     "Access-Control-Allow-Credentials": "true",
     "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",

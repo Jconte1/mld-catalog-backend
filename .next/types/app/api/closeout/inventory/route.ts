@@ -1,8 +1,8 @@
-// File: C:\Users\james\Documents\MLDwebsite\mld-catalog-backend\app\api\closeout_inventory\route.js
-import * as entry from '../../../../../app/api/closeout_inventory/route.js'
+// File: C:\Users\james\Documents\MLDwebsite\mld-catalog-backend\app\api\closeout\inventory\route.js
+import * as entry from '../../../../../../app/api/closeout/inventory/route.js'
 import type { NextRequest } from 'next/server.js'
 
-type TEntry = typeof import('../../../../../app/api/closeout_inventory/route.js')
+type TEntry = typeof import('../../../../../../app/api/closeout/inventory/route.js')
 
 // Check that the entry is a valid entry
 checkFields<Diff<{

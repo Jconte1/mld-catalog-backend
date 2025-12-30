@@ -1,1 +1,3 @@
-{}
+{
+  "/api/closeout/inventory/route": "app/api/closeout/inventory/route.js"
+}

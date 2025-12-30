@@ -3,6 +3,10 @@ import prisma from '../../../../lib/prisma';
 import nodemailer from 'nodemailer';
 import { XMLParser } from 'fast-xml-parser';
 
+// Ensure Node runtime (nodemailer requires Node APIs)
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // ---------- CORS HELPERS ----------
 
 function corsHeaders() {
@@ -22,21 +26,17 @@ export function OPTIONS() {
 function extractText(value, label) {
   if (value == null) return '';
 
-  // If it's already a string or number, just convert to string
   if (typeof value === 'string' || typeof value === 'number') {
     return String(value);
   }
 
-  // If it's an object, log it for debugging once
   if (typeof value === 'object') {
     console.log(`ℹ️ XML field ${label} came as object:`, JSON.stringify(value));
 
-    // Common fast-xml-parser pattern: { "#text": "value", "@_xml:space": "preserve" }
     if (Object.prototype.hasOwnProperty.call(value, '#text')) {
       return String(value['#text']);
     }
 
-    // Fallback: try the first value inside the object
     const first = Object.values(value)[0];
     if (first != null) {
       return String(first);
@@ -48,14 +48,34 @@ function extractText(value, label) {
   return String(value);
 }
 
-// ---------- EMAIL HELPER ----------
+// ---------- EMAIL HELPER (OUTLOOK / SMTP) ----------
 
+// Keep same env var names for recipients (END_USER_EMAIL, CC_EMAIL, AUTO_EMAIL, AUTO_EMAIL_PASSWORD)
+// Add these in Vercel env vars:
+// SMTP_HOST (ex: smtp.office365.com)
+// SMTP_PORT (ex: 587)
 function makeTransporter() {
+  const host = process.env.SMTP_HOST;
+  const portRaw = process.env.SMTP_PORT;
+  const user = process.env.AUTO_EMAIL;
+  const pass = process.env.AUTO_EMAIL_PASSWORD;
+
+  if (!host) throw new Error('Missing SMTP_HOST env var');
+  if (!portRaw) throw new Error('Missing SMTP_PORT env var');
+  if (!user) throw new Error('Missing AUTO_EMAIL env var');
+  if (!pass) throw new Error('Missing AUTO_EMAIL_PASSWORD env var');
+
+  const port = parseInt(portRaw, 10);
+  if (Number.isNaN(port)) throw new Error('SMTP_PORT must be a number');
+
   return nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.AUTO_EMAIL,
-      pass: process.env.AUTO_EMAIL_PASSWORD,
+    host,
+    port,
+    secure: false, // Office 365 / Outlook commonly uses STARTTLS on 587
+    auth: { user, pass },
+    tls: {
+      // keep this consistent with your existing working outlook transport
+      rejectUnauthorized: false,
     },
   });
 }
@@ -78,16 +98,16 @@ async function sendFailureEmail(toEmail, failures) {
       </thead>
       <tbody>
         ${failures
-      .map(
-        (f) => `
+          .map(
+            (f) => `
           <tr>
             <td>${f.acumaticaSku}</td>
             <td>${f.modelNumber}</td>
             <td>${f.reason}</td>
           </tr>
         `
-      )
-      .join('')}
+          )
+          .join('')}
       </tbody>
     </table>
   `;
@@ -130,9 +150,7 @@ async function fetchODataXml() {
   });
 
   if (!res.ok) {
-    throw new Error(
-      `OData fetch failed: ${res.status} ${res.statusText}`
-    );
+    throw new Error(`OData fetch failed: ${res.status} ${res.statusText}`);
   }
 
   return res.text();
@@ -141,7 +159,7 @@ async function fetchODataXml() {
 function parseODataXmlToItems(xml) {
   const parser = new XMLParser({
     ignoreAttributes: false,
-    removeNSPrefix: true, // turns m:properties -> properties, d:InventoryID -> InventoryID
+    removeNSPrefix: true,
     parseTagValue: true,
     trimValues: false,
   });
@@ -175,8 +193,6 @@ function parseODataXmlToItems(xml) {
         : null;
     const msrp = msrpStr !== '' && msrpStr != null ? Number(msrpStr) : 0;
 
-
-
     items.push({
       inventoryId,
       warehouse,
@@ -197,7 +213,6 @@ function parseODataXmlToItems(xml) {
 
 export async function POST() {
   try {
-    // 1) Fetch OData feed from Acumatica and parse XML into JS objects
     console.log('🔄 Starting closeout inventory sync from OData...');
     const xml = await fetchODataXml();
     const items = parseODataXmlToItems(xml);
@@ -215,7 +230,6 @@ export async function POST() {
     const updatedRecords = [];
     const failures = [];
 
-    // 2) Process each OData item (upsert into closeout_inventory)
     for (const item of items) {
       const acumaticaSku = item.inventoryId;
       if (!acumaticaSku) {
@@ -223,7 +237,7 @@ export async function POST() {
         continue;
       }
 
-      const parts = acumaticaSku.split(/\s+/); // split on any whitespace
+      const parts = acumaticaSku.split(/\s+/);
       if (parts.length < 3) {
         console.log('❌ Invalid acumaticaSku format. Parts:', parts);
         continue;
@@ -239,15 +253,12 @@ export async function POST() {
       const warehouse = item.warehouse || 'SALT LAKE CLOSEOUT';
       const bin = item.location || 'default';
 
-      // Simple placeholder rule: everything is NOT new-in-box by default.
-      // You can customize this later based on description / itemClass / etc.
       const newInBox = false;
 
       console.log(
         `🔎 Processing Item - acumaticaSku: "${acumaticaSku}", modelNumber: "${modelNumber}", normalizedModelNumber: "${normalizedModelNumber}", qtyOnHand: ${qtyOnHand}`
       );
 
-      // Look for existing closeout_inventory record for this SKU + model
       const existingRecord = await prisma.closeout_inventory.findFirst({
         where: {
           modelNumber: normalizedModelNumber,
@@ -256,7 +267,6 @@ export async function POST() {
       });
 
       if (existingRecord) {
-        // Update quantity, price, msrp, warehouse, bin, and timestamp
         await prisma.closeout_inventory.update({
           where: { id: existingRecord.id },
           data: {
@@ -284,7 +294,6 @@ export async function POST() {
           bin,
         });
       } else {
-        // Need to link to a product in products table via model
         const product = await prisma.products.findFirst({
           where: { model: normalizedModelNumber },
         });
@@ -332,7 +341,6 @@ export async function POST() {
       }
     }
 
-    // 3) Send ONE failure email for this entire sync run (if any failures)
     if (failures.length > 0) {
       console.log(
         `⚠️ ${failures.length} inventory items failed to match products. Sending failure email...`
@@ -342,7 +350,6 @@ export async function POST() {
       console.log('✅ No failures to report.');
     }
 
-    // 4) Housekeeping: delete records that have been zero quantity for >= 3 days
     const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
 
     const deletedStale = await prisma.closeout_inventory.deleteMany({
@@ -358,7 +365,6 @@ export async function POST() {
       `🧹 Housekeeping: deleted ${deletedStale.count} stale closeout_inventory records (qty 0 for >= 3 days).`
     );
 
-    // 5) Return summary JSON
     return Response.json(
       {
         success: true,

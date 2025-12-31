@@ -1,9 +1,8 @@
 // app/api/closeout/inventory/route.js
 import prisma from '../../../../lib/prisma';
-import nodemailer from 'nodemailer';
 import { XMLParser } from 'fast-xml-parser';
 
-// Ensure Node runtime (nodemailer requires Node APIs)
+// Ensure Node runtime
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -48,42 +47,79 @@ function extractText(value, label) {
   return String(value);
 }
 
-// ---------- EMAIL HELPER (OUTLOOK / SMTP) ----------
+// ---------- EMAIL HELPER (MICROSOFT GRAPH sendMail) ----------
+//
+// Add these env vars in Vercel (Production):
+// MS_TENANT_ID
+// MS_CLIENT_ID
+// MS_CLIENT_SECRET
+// MS_SENDER_EMAIL   (optional; defaults to AUTO_EMAIL)
+//
+// Keep using:
+// END_USER_EMAIL, CC_EMAIL, AUTO_EMAIL
 
-// Keep same env var names for recipients (END_USER_EMAIL, CC_EMAIL, AUTO_EMAIL, AUTO_EMAIL_PASSWORD)
-// Add these in Vercel env vars:
-// SMTP_HOST (ex: smtp.office365.com)
-// SMTP_PORT (ex: 587)
-function makeTransporter() {
-  const host = process.env.SMTP_HOST;
-  const portRaw = process.env.SMTP_PORT;
-  const user = process.env.AUTO_EMAIL;
-  const pass = process.env.AUTO_EMAIL_PASSWORD;
+let cachedToken = null;
+let cachedTokenExp = 0; // unix seconds
 
-  if (!host) throw new Error('Missing SMTP_HOST env var');
-  if (!portRaw) throw new Error('Missing SMTP_PORT env var');
-  if (!user) throw new Error('Missing AUTO_EMAIL env var');
-  if (!pass) throw new Error('Missing AUTO_EMAIL_PASSWORD env var');
+async function getGraphAccessToken() {
+  const tenantId = process.env.MS_TENANT_ID;
+  const clientId = process.env.MS_CLIENT_ID;
+  const clientSecret = process.env.MS_CLIENT_SECRET;
 
-  const port = parseInt(portRaw, 10);
-  if (Number.isNaN(port)) throw new Error('SMTP_PORT must be a number');
+  if (!tenantId) throw new Error('Missing MS_TENANT_ID env var');
+  if (!clientId) throw new Error('Missing MS_CLIENT_ID env var');
+  if (!clientSecret) throw new Error('Missing MS_CLIENT_SECRET env var');
 
-  return nodemailer.createTransport({
-    host,
-    port,
-    secure: false, // Office 365 / Outlook commonly uses STARTTLS on 587
-    auth: { user, pass },
-    tls: {
-      // keep this consistent with your existing working outlook transport
-      rejectUnauthorized: false,
-    },
+  const now = Math.floor(Date.now() / 1000);
+  if (cachedToken && cachedTokenExp && now < cachedTokenExp - 60) {
+    return cachedToken;
+  }
+
+  const tokenUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
+
+  const body = new URLSearchParams({
+    client_id: clientId,
+    client_secret: clientSecret,
+    grant_type: 'client_credentials',
+    scope: 'https://graph.microsoft.com/.default',
   });
+
+  const res = await fetch(tokenUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body,
+  });
+
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(
+      `Graph token request failed: ${res.status} ${res.statusText} - ${txt}`
+    );
+  }
+
+  const data = await res.json();
+
+  cachedToken = data.access_token;
+  cachedTokenExp = now + (data.expires_in || 3599);
+
+  return cachedToken;
+}
+
+function asRecipients(addresses) {
+  const list = Array.isArray(addresses) ? addresses : [addresses];
+  return list
+    .filter(Boolean)
+    .map((addr) => ({ emailAddress: { address: String(addr).trim() } }));
 }
 
 async function sendFailureEmail(toEmail, failures) {
   if (!failures.length) return;
 
-  const transporter = makeTransporter();
+  const sender = process.env.MS_SENDER_EMAIL || process.env.AUTO_EMAIL;
+  if (!sender) throw new Error('Missing MS_SENDER_EMAIL (or AUTO_EMAIL) env var');
+  if (!toEmail) throw new Error('Missing END_USER_EMAIL (toEmail) env var');
+
+  const token = await getGraphAccessToken();
 
   const htmlContent = `
     <h2>Inventory Sync Failures</h2>
@@ -112,13 +148,40 @@ async function sendFailureEmail(toEmail, failures) {
     </table>
   `;
 
-  await transporter.sendMail({
-    from: `"Inventory Sync" <${process.env.AUTO_EMAIL}>`,
-    to: toEmail,
-    cc: process.env.CC_EMAIL,
-    subject: '⚠️ Inventory Sync Failures Detected',
-    html: htmlContent,
+  const payload = {
+    message: {
+      subject: '⚠️ Inventory Sync Failures Detected',
+      body: {
+        contentType: 'HTML',
+        content: htmlContent,
+      },
+      toRecipients: asRecipients(toEmail),
+      ccRecipients: asRecipients(process.env.CC_EMAIL),
+      from: { emailAddress: { address: sender } },
+      sender: { emailAddress: { address: sender } },
+    },
+    saveToSentItems: false,
+  };
+
+  const graphUrl = `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(
+    sender
+  )}/sendMail`;
+
+  const res = await fetch(graphUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
   });
+
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(
+      `Graph sendMail failed: ${res.status} ${res.statusText} - ${txt}`
+    );
+  }
 
   console.log(`✅ Failure email sent to ${toEmail}`);
 }

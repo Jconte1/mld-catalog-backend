@@ -10,6 +10,11 @@ export async function GET(req) {
   const isVercelCron = req.headers.get("x-vercel-cron") === "1";
 
   if (!isVercelCron && (!expectedSecret || providedSecret !== expectedSecret)) {
+    console.warn("Cron auth failed", {
+      isVercelCron,
+      hasExpectedSecret: Boolean(expectedSecret),
+      hasProvidedSecret: Boolean(providedSecret),
+    });
     return new Response("Unauthorized", { status: 401 });
   }
 

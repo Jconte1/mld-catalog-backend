@@ -274,7 +274,7 @@ function parseODataXmlToItems(xml) {
 
 // ---------- CORE SYNC LOGIC ----------
 
-export async function POST() {
+export async function runInventorySync() {
   try {
     console.log('🔄 Starting closeout inventory sync from OData...');
     const xml = await fetchODataXml();
@@ -291,7 +291,11 @@ export async function POST() {
     console.log(`📦 Received ${items.length} closeout inventory rows from OData.`);
 
     const updatedRecords = [];
-    const failures = [];
+    const failures = [];
+    const seenSkus = new Set();
+    const seenWarehouses = new Set();
+    let missingDeletedCount = 0;
+    let missingDeletedRows = [];
 
     for (const item of items) {
       const acumaticaSku = item.inventoryId;
@@ -299,6 +303,9 @@ export async function POST() {
         console.log('❌ Missing InventoryID on item, skipping.');
         continue;
       }
+
+      seenSkus.add(acumaticaSku);
+
 
       const parts = acumaticaSku.split(/\s+/);
       if (parts.length < 3) {
@@ -313,7 +320,9 @@ export async function POST() {
       const defaultPrice = item.defaultPrice;
       const msrp = item.msrp;
 
-      const warehouse = item.warehouse || 'SALT LAKE CLOSEOUT';
+      const warehouse = item.warehouse || 'SALT LAKE CLOSEOUT';
+
+      seenWarehouses.add(warehouse);
       const bin = item.location || 'default';
 
       const newInBox = false;
@@ -404,6 +413,36 @@ export async function POST() {
       }
     }
 
+    if (seenSkus.size > 0) {
+      const seenSkuList = Array.from(seenSkus);
+      const seenWarehouseList = Array.from(seenWarehouses);
+
+      const missingWhere = {
+        acumaticaSku: { notIn: seenSkuList },
+      };
+
+      if (seenWarehouseList.length > 0) {
+        missingWhere.warehouse = { in: seenWarehouseList };
+      }
+
+      const missingRows = await prisma.closeout_inventory.findMany({
+        where: missingWhere,
+        select: { acumaticaSku: true, modelNumber: true },
+      });
+
+      const missingDeleted = await prisma.closeout_inventory.deleteMany({
+        where: missingWhere,
+      });
+
+      missingDeletedCount = missingDeleted.count;
+
+      console.log(
+        `Deleted ${missingDeletedCount} closeout_inventory rows not returned by OData sync.`
+      );
+      missingDeletedRows = missingRows;
+    }
+
+
     if (failures.length > 0) {
       console.log(
         `⚠️ ${failures.length} inventory items failed to match products. Sending failure email...`
@@ -428,13 +467,23 @@ export async function POST() {
       `🧹 Housekeeping: deleted ${deletedStale.count} stale closeout_inventory records (qty 0 for >= 3 days).`
     );
 
+    if (missingDeletedRows.length > 0) {
+      console.log(
+        'Deleted closeout rows:',
+        missingDeletedRows.map(
+          (row) => `${row.acumaticaSku} | ${row.modelNumber}`
+        )
+      );
+    }
+
     return Response.json(
       {
         success: true,
         updatedCount: updatedRecords.length,
         updatedRecords,
         failuresCount: failures.length,
-        failures,
+        failures,
+        missingDeletedCount,
         housekeepingDeletedCount: deletedStale.count,
       },
       { headers: corsHeaders() }
@@ -447,3 +496,8 @@ export async function POST() {
     );
   }
 }
+
+export async function POST() {
+  return runInventorySync();
+}
+

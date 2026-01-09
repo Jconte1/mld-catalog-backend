@@ -4,16 +4,13 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req) {
-  const expectedSecret = process.env.CRON_SECRET;
-  const url = new URL(req.url);
-  const providedSecret = url.searchParams.get("secret");
-  const isVercelCron = req.headers.get("x-vercel-cron") === "1";
+  const userAgent = req.headers.get("user-agent") || "";
+  const isVercelCron = userAgent.toLowerCase().startsWith("vercel-cron/");
 
-  if (!isVercelCron && (!expectedSecret || providedSecret !== expectedSecret)) {
+  if (!isVercelCron) {
     console.warn("Cron auth failed", {
       isVercelCron,
-      hasExpectedSecret: Boolean(expectedSecret),
-      hasProvidedSecret: Boolean(providedSecret),
+      isVercelCronUA: Boolean(userAgent),
     });
     return new Response("Unauthorized", { status: 401 });
   }

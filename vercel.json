@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/closeout/inventory/cron?secret=${CRON_SECRET}",
+      "path": "/api/closeout/inventory/cron",
       "schedule": "0 14 * * *"
     }
   ]

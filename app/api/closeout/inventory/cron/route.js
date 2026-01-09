@@ -7,8 +7,9 @@ export async function GET(req) {
   const expectedSecret = process.env.CRON_SECRET;
   const url = new URL(req.url);
   const providedSecret = url.searchParams.get("secret");
+  const isVercelCron = req.headers.get("x-vercel-cron") === "1";
 
-  if (!expectedSecret || providedSecret !== expectedSecret) {
+  if (!isVercelCron && (!expectedSecret || providedSecret !== expectedSecret)) {
     return new Response("Unauthorized", { status: 401 });
   }
 

@@ -2,8 +2,7 @@
   "crons": [
     {
       "path": "/api/closeout/inventory/cron?secret=${CRON_SECRET}",
-      "schedule": "0 7 * * *",
-      "timezone": "America/Denver"
+      "schedule": "0 14 * * *"
     }
   ]
 }

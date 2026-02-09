@@ -1,1 +1,4 @@
-{}
+{
+  "/api/closeout_inventory/route": "app/api/closeout_inventory/route.js",
+  "/api/closeout_inventory/[storeId]/[slug]/route": "app/api/closeout_inventory/[storeId]/[slug]/route.js"
+}

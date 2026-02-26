@@ -1,6 +1,5 @@
 // app/api/closeout/inventory/route.js
 import prisma from '../../../../lib/prisma';
-import { XMLParser } from 'fast-xml-parser';
 
 // Ensure Node runtime
 export const runtime = 'nodejs';
@@ -186,75 +185,100 @@ async function sendFailureEmail(toEmail, failures) {
   console.log(`✅ Failure email sent to ${toEmail}`);
 }
 
-// ---------- ODATA FETCH + PARSE ----------
+// ---------- QUEUE ERP FETCH ----------
 
-async function fetchODataXml() {
-  const url =
-    process.env.ACUMATICA_CLOSEOUT_ODATA_URL ||
-    'https://acumatica.mld.com/OData/MLD/Closeout%20Inventory%20Counts';
+async function queueErpRequest(path, opts = {}) {
+  const base = requireEnv('MLD_QUEUE_BASE_URL').replace(/\/$/, '');
+  const token = requireEnv('MLD_QUEUE_TOKEN');
+  const method = opts.method || 'GET';
+  const timeoutMs = getMs(process.env.MLD_QUEUE_TIMEOUT_MS || opts.timeoutMs, 30000);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
-  const username = process.env.ACUMATICA_USERNAME;
-  const password = process.env.ACUMATICA_PASSWORD;
+  try {
+    const url = `${base}${path.startsWith('/') ? '' : '/'}${path}`;
+    const res = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: method === 'POST' ? JSON.stringify(opts.body || {}) : undefined,
+      signal: controller.signal,
+      cache: 'no-store',
+    });
 
-  if (!username || !password) {
-    throw new Error('Missing ACUMATICA_USERNAME or ACUMATICA_PASSWORD env vars');
+    const text = await res.text();
+    if (!res.ok) {
+      throw new Error(
+        `Queue request failed (${res.status}) path=${path} body=${text.slice(0, 400)}`
+      );
+    }
+
+    return text ? JSON.parse(text) : {};
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const authHeader =
-    'Basic ' + Buffer.from(`${username}:${password}`).toString('base64');
-
-  const res = await fetch(url, {
-    method: 'GET',
-    headers: {
-      Authorization: authHeader,
-      Accept: 'application/xml',
-    },
-    cache: 'no-store',
-  });
-
-  if (!res.ok) {
-    throw new Error(`OData fetch failed: ${res.status} ${res.statusText}`);
-  }
-
-  return res.text();
 }
 
-function parseODataXmlToItems(xml) {
-  const parser = new XMLParser({
-    ignoreAttributes: false,
-    removeNSPrefix: true,
-    parseTagValue: true,
-    trimValues: false,
-  });
+async function queueErpJobRequest(submitPath, body) {
+  const timeoutMs = getMs(process.env.MLD_QUEUE_JOB_POLL_TIMEOUT_MS, 60000);
+  const pollIntervalMs = getMs(process.env.MLD_QUEUE_JOB_POLL_INTERVAL_MS, 300);
+  const startedAt = Date.now();
 
-  const json = parser.parse(xml);
+  const submit = await queueErpRequest(submitPath, { method: 'POST', body, timeoutMs });
+  if (!submit?.jobId) {
+    throw new Error(`Queue job submit missing jobId path=${submitPath}`);
+  }
 
-  const entriesRaw = json?.feed?.entry || [];
-  const entries = Array.isArray(entriesRaw) ? entriesRaw : [entriesRaw];
+  console.log('[closeout-sync] queue job submitted', { submitPath, jobId: submit.jobId });
 
+  while (Date.now() - startedAt < timeoutMs) {
+    const status = await queueErpRequest(`/api/erp/jobs/${submit.jobId}`, {
+      method: 'GET',
+      timeoutMs,
+    });
+
+    if (status?.status === 'succeeded') {
+      return status?.result || {};
+    }
+    if (status?.status === 'failed') {
+      throw new Error(
+        `Queue job failed path=${submitPath} jobId=${submit.jobId} error=${status?.error || 'unknown'}`
+      );
+    }
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+  }
+
+  throw new Error(`Queue job timeout path=${submitPath} timeoutMs=${timeoutMs}`);
+}
+
+function parseQueueRowsToItems(rows) {
+  const list = Array.isArray(rows) ? rows : [];
   const items = [];
 
-  for (const entry of entries) {
-    const props = entry?.content?.properties;
-    if (!props) continue;
+  for (const row of list) {
+    const inventoryId = extractText(row?.InventoryID, 'InventoryID').trim();
+    const warehouse = extractText(row?.Warehouse, 'Warehouse').trim();
+    const location = extractText(row?.Location, 'Location').trim();
+    const description = extractText(row?.Description, 'Description');
+    const itemClass = extractText(row?.ItemClass, 'ItemClass');
+    const brand = extractText(row?.Brand, 'Brand');
 
-    const inventoryId = extractText(props.InventoryID, 'InventoryID').trim();
-    const warehouse = extractText(props.Warehouse, 'Warehouse').trim();
-    const location = extractText(props.Location, 'Location').trim();
-    const description = extractText(props.Description, 'Description');
-    const itemClass = extractText(props.ItemClass, 'ItemClass');
-    const brand = extractText(props.Brand, 'Brand');
-
-    const qtyOnHandStr = extractText(props.QtyOnHand, 'QtyOnHand');
-    const defaultPriceStr = extractText(props.DefaultPrice, 'DefaultPrice');
-    const msrpStr = extractText(props.MSRP, 'MSRP');
+    const qtyOnHandStr = extractText(row?.QtyOnHand, 'QtyOnHand');
+    const defaultPriceStr = extractText(row?.DefaultPrice, 'DefaultPrice');
+    const msrpStr = extractText(row?.MSRP, 'MSRP');
 
     const qtyOnHand = Number(qtyOnHandStr) || 0;
     const defaultPrice =
-      defaultPriceStr !== '' && defaultPriceStr != null
+      defaultPriceStr !== '' && defaultPriceStr != null && Number.isFinite(Number(defaultPriceStr))
         ? Number(defaultPriceStr)
         : null;
-    const msrp = msrpStr !== '' && msrpStr != null ? Number(msrpStr) : 0;
+    const msrp =
+      msrpStr !== '' && msrpStr != null && Number.isFinite(Number(msrpStr))
+        ? Number(msrpStr)
+        : 0;
 
     items.push({
       inventoryId,
@@ -271,24 +295,27 @@ function parseODataXmlToItems(xml) {
 
   return items;
 }
-
 // ---------- CORE SYNC LOGIC ----------
 
 export async function runInventorySync() {
   try {
-    console.log('🔄 Starting closeout inventory sync from OData...');
-    const xml = await fetchODataXml();
-    const items = parseODataXmlToItems(xml);
+    console.log('🔄 Starting closeout inventory sync from queue report...');
+    if ((process.env.USE_QUEUE_ERP || '').trim().toLowerCase() !== 'true') {
+      throw new Error('USE_QUEUE_ERP must be true for closeout sync');
+    }
+
+    const result = await queueErpJobRequest('/api/erp/jobs/reports/closeout-inventory', {});
+    const items = parseQueueRowsToItems(result?.rows);
 
     if (!items.length) {
-      console.warn('⚠️ No items returned from OData Closeout Inventory Counts.');
+      console.warn('⚠️ No items returned from queue report Closeout Inventory Counts.');
       return Response.json(
-        { error: 'No inventory records returned from OData' },
+        { error: 'No inventory records returned from queue report' },
         { status: 400, headers: corsHeaders() }
       );
     }
 
-    console.log(`📦 Received ${items.length} closeout inventory rows from OData.`);
+    console.log(`📦 Received ${items.length} closeout inventory rows from queue report.`);
 
     const updatedRecords = [];
     const failures = [];
@@ -495,6 +522,17 @@ export async function runInventorySync() {
       { status: 500, headers: corsHeaders() }
     );
   }
+}
+
+function requireEnv(name) {
+  const value = process.env[name]?.trim();
+  if (!value) throw new Error(`Missing env var: ${name}`);
+  return value;
+}
+
+function getMs(value, fallback) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
 export async function POST() {

@@ -1,5 +1,5 @@
-import prisma from "../../../../../lib/prisma";
-import { syncSaleSignupsToMailchimp } from "../../../../../lib/mailchimp";
+import prisma from "../../../../lib/prisma";
+import { syncSaleSignupsToMailchimp } from "../../../../lib/mailchimp";
 
 function corsHeaders(req) {
   const origin = req.headers.get("origin") || "";
@@ -90,4 +90,3 @@ export async function POST(req) {
     );
   }
 }
-

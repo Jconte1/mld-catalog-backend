@@ -304,6 +304,37 @@ model QuoteRequest {
   verifiedAt DateTime?
 }
 
+model SaleSignUp {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  submissionId    String   @db.VarChar(64)
+  eventSlug       String   @db.VarChar(191)
+  eventTitle      String?  @db.VarChar(191)
+  attendeeIndex   Int
+  firstName       String   @db.VarChar(120)
+  lastName        String   @db.VarChar(120)
+  email           String   @db.VarChar(191)
+  phone           String   @db.VarChar(32)
+  smsConsent      Boolean  @default(false)
+  firstNameNorm   String   @db.VarChar(120)
+  emailNorm       String   @db.VarChar(191)
+  sourceUrl       String?
+  referrer        String?
+  utmSource       String?  @db.VarChar(191)
+  utmMedium       String?  @db.VarChar(191)
+  utmCampaign     String?  @db.VarChar(191)
+  utmTerm         String?  @db.VarChar(191)
+  utmContent      String?  @db.VarChar(191)
+  gclid           String?  @db.VarChar(191)
+  fbclid          String?  @db.VarChar(191)
+
+  @@index([eventSlug, createdAt])
+  @@index([submissionId])
+  @@index([eventSlug, emailNorm, firstNameNorm], name: "sale_signup_dedupe_idx")
+  @@map("SaleSignUps")
+}
+
 enum AccountRole {
   ADMIN
   PM

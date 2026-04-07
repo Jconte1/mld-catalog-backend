@@ -184,6 +184,14 @@ export async function POST(req) {
         failures: mailchimpSync.failures,
       });
     }
+    if ((mailchimpSync.warnings || []).length > 0) {
+      console.warn("sale-signups Mailchimp sync warnings:", {
+        submissionId,
+        eventSlug,
+        warningCount: mailchimpSync.warnings.length,
+        warnings: mailchimpSync.warnings,
+      });
+    }
 
     return Response.json(
       {
@@ -196,6 +204,7 @@ export async function POST(req) {
           successCount: mailchimpSync.successCount,
           failedCount: mailchimpSync.failedCount,
           reason: mailchimpSync.reason || null,
+          warningCount: (mailchimpSync.warnings || []).length,
         },
       },
       { status: 201, headers }

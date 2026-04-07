@@ -66,6 +66,14 @@ export async function POST(req) {
         failures: sync.failures,
       });
     }
+    if ((sync.warnings || []).length > 0) {
+      console.warn("sale-signups resync Mailchimp warnings:", {
+        eventSlug,
+        submissionId,
+        warningCount: sync.warnings.length,
+        warnings: sync.warnings,
+      });
+    }
 
     return Response.json(
       {
@@ -77,6 +85,7 @@ export async function POST(req) {
           successCount: sync.successCount,
           failedCount: sync.failedCount,
           reason: sync.reason || null,
+          warningCount: (sync.warnings || []).length,
           failures: sync.failures,
         },
       },

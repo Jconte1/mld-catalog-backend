@@ -74,6 +74,14 @@ export async function POST(req) {
         warnings: sync.warnings,
       });
     }
+    if ((sync.skippedAttendees || []).length > 0) {
+      console.info("sale-signups resync Mailchimp skipped attendees:", {
+        eventSlug,
+        submissionId,
+        skippedCount: sync.skippedCount,
+        skippedAttendees: sync.skippedAttendees,
+      });
+    }
 
     return Response.json(
       {
@@ -84,6 +92,7 @@ export async function POST(req) {
           skipped: sync.skipped,
           successCount: sync.successCount,
           failedCount: sync.failedCount,
+          skippedCount: sync.skippedCount || 0,
           reason: sync.reason || null,
           warningCount: (sync.warnings || []).length,
           failures: sync.failures,

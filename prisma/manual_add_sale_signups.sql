@@ -10,7 +10,13 @@ CREATE TABLE IF NOT EXISTS "SaleSignUps" (
   "lastName" VARCHAR(120) NOT NULL,
   "email" VARCHAR(191) NOT NULL,
   "phone" VARCHAR(32) NOT NULL,
+  "emailConsent" BOOLEAN NOT NULL DEFAULT false,
   "smsConsent" BOOLEAN NOT NULL DEFAULT false,
+  "addressLine1" VARCHAR(256) NOT NULL,
+  "addressLine2" VARCHAR(256),
+  "city" VARCHAR(128) NOT NULL,
+  "state" VARCHAR(32) NOT NULL,
+  "zip" VARCHAR(16) NOT NULL,
   "firstNameNorm" VARCHAR(120) NOT NULL,
   "emailNorm" VARCHAR(191) NOT NULL,
   "sourceUrl" TEXT,
@@ -33,3 +39,11 @@ CREATE INDEX IF NOT EXISTS "SaleSignUps_submissionId_idx"
 
 CREATE INDEX IF NOT EXISTS "sale_signup_dedupe_idx"
   ON "SaleSignUps"("eventSlug", "emailNorm", "firstNameNorm");
+
+ALTER TABLE "SaleSignUps"
+  ADD COLUMN IF NOT EXISTS "emailConsent" BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS "addressLine1" VARCHAR(256) NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS "addressLine2" VARCHAR(256),
+  ADD COLUMN IF NOT EXISTS "city" VARCHAR(128) NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS "state" VARCHAR(32) NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS "zip" VARCHAR(16) NOT NULL DEFAULT '';

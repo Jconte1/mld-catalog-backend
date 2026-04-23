@@ -2,6 +2,14 @@ import prisma from "../../../lib/prisma";
 import { randomUUID } from "crypto";
 import { syncSaleSignupsToMailchimp } from "../../../lib/mailchimp";
 
+const US_STATE_CODES = new Set([
+  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+  "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+  "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+  "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+  "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+]);
+
 function corsHeaders(req) {
   const origin = req.headers.get("origin") || "";
   const allowed = ["https://www.mld.com", "http://localhost:3000"];
@@ -31,6 +39,10 @@ function normalizePhone(value) {
   return String(value || "").replace(/\D/g, "");
 }
 
+function normalizeZip(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
 }
@@ -39,14 +51,24 @@ function isValidUsPhone(value) {
   return /^\d{10}$/.test(normalizePhone(value));
 }
 
+function isValidZip(value) {
+  return /^\d{5}$/.test(normalizeZip(value));
+}
+
 function parseAttendee(input, attendeeIndex) {
   const firstName = String(input?.firstName || "").trim();
   const lastName = String(input?.lastName || "").trim();
   const email = String(input?.email || "").trim();
   const phone = String(input?.phone || "").trim();
+  const emailConsent = Boolean(input?.emailConsent);
   const smsConsent = Boolean(input?.smsConsent);
+  const addressLine1 = String(input?.addressLine1 || "").trim();
+  const addressLine2 = String(input?.addressLine2 || "").trim();
+  const city = String(input?.city || "").trim();
+  const state = String(input?.state || "").trim().toUpperCase();
+  const zip = String(input?.zip || "").trim();
 
-  if (!firstName || !lastName || !email || !phone) {
+  if (!firstName || !lastName || !email || !phone || !addressLine1 || !city || !state || !zip) {
     throw new Error(`Attendee ${attendeeIndex}: missing required fields.`);
   }
 
@@ -58,13 +80,31 @@ function parseAttendee(input, attendeeIndex) {
     throw new Error(`Attendee ${attendeeIndex}: invalid phone.`);
   }
 
+  if (!US_STATE_CODES.has(state)) {
+    throw new Error(`Attendee ${attendeeIndex}: invalid state.`);
+  }
+
+  if (!isValidZip(zip)) {
+    throw new Error(`Attendee ${attendeeIndex}: ZIP must be exactly 5 digits.`);
+  }
+
+  if (!emailConsent && !smsConsent) {
+    throw new Error(`Attendee ${attendeeIndex}: at least one consent option is required.`);
+  }
+
   return {
     attendeeIndex,
     firstName,
     lastName,
     email,
     phone: normalizePhone(phone),
+    emailConsent,
     smsConsent,
+    addressLine1,
+    addressLine2: addressLine2 || null,
+    city,
+    state,
+    zip: normalizeZip(zip),
     firstNameNorm: normalizeName(firstName),
     emailNorm: normalizeEmail(email),
   };
@@ -154,7 +194,13 @@ export async function POST(req) {
       lastName: a.lastName,
       email: a.email,
       phone: a.phone,
+      emailConsent: a.emailConsent,
       smsConsent: a.smsConsent,
+      addressLine1: a.addressLine1,
+      addressLine2: a.addressLine2,
+      city: a.city,
+      state: a.state,
+      zip: a.zip,
       firstNameNorm: a.firstNameNorm,
       emailNorm: a.emailNorm,
       sourceUrl: body?.sourceUrl ? String(body.sourceUrl) : null,
@@ -192,6 +238,14 @@ export async function POST(req) {
         warnings: mailchimpSync.warnings,
       });
     }
+    if ((mailchimpSync.skippedAttendees || []).length > 0) {
+      console.info("sale-signups Mailchimp sync skipped attendees:", {
+        submissionId,
+        eventSlug,
+        skippedCount: mailchimpSync.skippedCount,
+        skippedAttendees: mailchimpSync.skippedAttendees,
+      });
+    }
 
     return Response.json(
       {
@@ -203,6 +257,7 @@ export async function POST(req) {
           skipped: mailchimpSync.skipped,
           successCount: mailchimpSync.successCount,
           failedCount: mailchimpSync.failedCount,
+          skippedCount: mailchimpSync.skippedCount || 0,
           reason: mailchimpSync.reason || null,
           warningCount: (mailchimpSync.warnings || []).length,
         },

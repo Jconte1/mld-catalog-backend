@@ -316,7 +316,13 @@ model SaleSignUp {
   lastName        String   @db.VarChar(120)
   email           String   @db.VarChar(191)
   phone           String   @db.VarChar(32)
+  emailConsent    Boolean  @default(false)
   smsConsent      Boolean  @default(false)
+  addressLine1    String   @db.VarChar(256)
+  addressLine2    String?  @db.VarChar(256)
+  city            String   @db.VarChar(128)
+  state           String   @db.VarChar(32)
+  zip             String   @db.VarChar(16)
   firstNameNorm   String   @db.VarChar(120)
   emailNorm       String   @db.VarChar(191)
   sourceUrl       String?

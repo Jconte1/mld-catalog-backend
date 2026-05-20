@@ -25,13 +25,19 @@ export async function GET(req) {
   const limitParam = url.searchParams.get('limit');
   const filters = url.searchParams.get('filters');
   const sort = url.searchParams.get('sort');
+  const fields = url.searchParams.get('fields');
+  const sitemapMode = fields === 'sitemap' || url.searchParams.get('sitemap') === 'true';
 
-  console.log('📥 FULL QUERY OBJECT:', Object.fromEntries(url.searchParams));
+  if (!sitemapMode) {
+    console.log('📥 FULL QUERY OBJECT:', Object.fromEntries(url.searchParams));
+  }
 
   try {
     if (filters) {
       const parsed = JSON.parse(filters);
-      console.log('🔍 Parsed filters object:', parsed);
+      if (!sitemapMode) {
+        console.log('🔍 Parsed filters object:', parsed);
+      }
     }
   } catch (e) {
     console.error('❌ Failed to parse filters JSON:', e);
@@ -73,7 +79,10 @@ export async function GET(req) {
 
   const where = { ...typeClause, ...filterClause };
 
-  console.log('📥 sort param:', sort);
+  if (!sitemapMode) {
+    console.log('📥 sort param:', sort);
+  }
+
   let orderBy;
   if (sort === 'name_asc') orderBy = { model: 'asc' };
   else if (sort === 'name_desc') orderBy = { model: 'desc' };
@@ -81,7 +90,9 @@ export async function GET(req) {
   else orderBy = { created_at: 'desc' };
 
   try {
-    console.log('🟣 Using orderBy:', orderBy);
+    if (!sitemapMode) {
+      console.log('🟣 Using orderBy:', orderBy);
+    }
 
     const totalCount = await prisma.products.count({ where });
 
@@ -90,10 +101,17 @@ export async function GET(req) {
       skip,
       take: parsedLimit ?? undefined,
       orderBy,
-      select: {
-        id: true, slug: true, category: true, type: true, model: true,
-        brand: true, major: true, minor: true, features: true, configuration: true, data: true,
-      },
+      select: sitemapMode
+        ? {
+            slug: true,
+            category: true,
+            type: true,
+            created_at: true,
+          }
+        : {
+            id: true, slug: true, category: true, type: true, model: true,
+            brand: true, major: true, minor: true, features: true, configuration: true, data: true,
+          },
     });
 
     return Response.json({ products, totalCount }, { headers: corsHeaders() });
